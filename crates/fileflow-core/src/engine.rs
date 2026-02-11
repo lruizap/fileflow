@@ -25,7 +25,7 @@ impl Engine {
         Self
     }
 
-    pub fn run_action<A: Action>(&self, action: &A) -> JobRunResult {
+    pub fn run_action(&self, action: &dyn Action) -> JobRunResult {
         let id = JobId(NEXT_JOB_ID.fetch_add(1, Ordering::SeqCst));
         let mut job = Job::new(id, action.name());
 
