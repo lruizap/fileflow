@@ -1,14 +1,35 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
+use fileflow_core::{Action, Context, Progress, Result};
+
+pub struct EchoAction;
+
+impl Action for EchoAction {
+    fn name(&self) -> &'static str {
+        "echo"
+    }
+
+    fn execute(&self, ctx: &mut Context) -> Result<()> {
+        ctx.info("EchoAction: inicio");
+        ctx.set_progress(Progress::new(1, 3).with_message("Preparando..."));
+
+        ctx.info("EchoAction: trabajando...");
+        ctx.set_progress(Progress::new(2, 3).with_message("A mitad..."));
+
+        ctx.info("EchoAction: final");
+        ctx.set_progress(Progress::new(3, 3).with_message("Terminado"));
+
+        Ok(())
+    }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+/// “Registry” mínimo para resolver acciones por nombre.
+/// (Más adelante esto crecerá a plugins / pipelines.)
+pub fn get_action(name: &str) -> Option<Box<dyn Action>> {
+    match name {
+        "echo" => Some(Box::new(EchoAction)),
+        _ => None,
     }
+}
+
+pub fn list_actions() -> Vec<&'static str> {
+    vec!["echo"]
 }
