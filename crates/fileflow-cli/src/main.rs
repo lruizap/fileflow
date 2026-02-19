@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use std::path::PathBuf;
 
 use fileflow_core::{Engine, JobStatus};
 use fileflow_actions as actions;
@@ -25,6 +26,16 @@ enum Commands {
     Actions {
         #[command(subcommand)]
         command: ActionsCommands,
+    },
+
+    /// Copia un archivo src -> dst
+    Copy {
+        src: PathBuf,
+        dst: PathBuf,
+
+        /// Sobrescribe si el destino existe
+        #[arg(long)]
+        overwrite: bool,
     },
 
     /// Comando de prueba para verificar que el CLI funciona
@@ -55,24 +66,8 @@ fn main() {
 
             let engine = Engine::new();
             let out = engine.run_action(act.as_ref());
-
-            println!("Job: {} ({:?})", out.job.action_name, out.job.id);
-            print_status(&out.job.status);
-
-            if let Some(p) = &out.job.progress {
-                println!(
-                    "Progreso: {}/{} ({:?})",
-                    p.current,
-                    p.total,
-                    p.message.as_deref().unwrap_or("")
-                );
-            }
-
-            println!("\nLogs:");
-            for l in out.logs {
-                println!("[{:?}] {}", l.level, l.message);
-            }
-        }
+            print_output(out.job.status, out.logs);
+        },
 
         Commands::Actions { command } => match command {
             ActionsCommands::List => {
@@ -81,6 +76,15 @@ fn main() {
                     println!("- {a}");
                 }
             }
+        },
+
+        Commands::Copy { src, dst, overwrite } => {
+            let cfg = actions::CopyConfig { src, dst, overwrite };
+            let act = actions::build_copy_action(cfg);
+
+            let engine = Engine::new();
+            let out = engine.run_action(act.as_ref());
+            print_output(out.job.status, out.logs);
         },
 
         Commands::Ping => {
@@ -93,12 +97,18 @@ fn main() {
 }
 
 
-fn print_status(status: &JobStatus) {
-    match status {
+
+fn print_output(status: JobStatus, logs: Vec<fileflow_core::LogEntry>) {
+    match &status {
         JobStatus::Success => println!("Estado: SUCCESS"),
+        JobStatus::Failed(err) => println!("Estado: FAILED -> {err}"),
+        JobStatus::Cancelled => println!("Estado: CANCELLED"),
         JobStatus::Running => println!("Estado: RUNNING"),
         JobStatus::Pending => println!("Estado: PENDING"),
-        JobStatus::Cancelled => println!("Estado: CANCELLED"),
-        JobStatus::Failed(err) => println!("Estado: FAILED -> {err}"),
+    }
+
+    println!("\nLogs:");
+    for l in logs {
+        println!("[{:?}] {}", l.level, l.message);
     }
 }
