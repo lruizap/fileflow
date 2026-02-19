@@ -1,20 +1,31 @@
-use fileflow_core::Action;
+use fileflow_core::{Action, FileFlowError, Result};
 
-use crate::actions::{copy::{CopyAction, CopyConfig}, echo::EchoAction};
+use crate::factory::ActionFactory;
+use crate::actions::copy_factory::CopyFactory;
+use crate::actions::echo_factory::EchoFactory;
+
+fn factories() -> Vec<Box<dyn ActionFactory>> {
+    vec![
+        Box::new(EchoFactory),
+        Box::new(CopyFactory),
+    ]
+}
 
 pub fn list_actions() -> Vec<&'static str> {
-    vec!["echo", "copy"]
+    factories().into_iter().map(|f| f.name()).collect()
 }
 
-/// Registry por nombre (acciones sin config o genéricas)
-pub fn get_action(name: &str) -> Option<Box<dyn Action>> {
-    match name {
-        "echo" => Some(Box::new(EchoAction)),
-        _ => None,
+pub fn list_actions_help() -> Vec<(&'static str, &'static str)> {
+    factories().into_iter().map(|f| (f.name(), f.help())).collect()
+}
+
+pub fn build_action(name: &str, args: &[String]) -> Result<Box<dyn Action>> {
+    for f in factories() {
+        if f.name() == name {
+            return f.build(args);
+        }
     }
-}
-
-/// Builder específico para copy (porque necesita config)
-pub fn build_copy_action(cfg: CopyConfig) -> Box<dyn Action> {
-    Box::new(CopyAction::new(cfg))
+    Err(FileFlowError::Message(format!(
+        "Action not found: {name}"
+    )))
 }
