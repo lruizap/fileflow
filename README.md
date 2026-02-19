@@ -82,9 +82,15 @@ FileFlow automatiza y acelera:
 
 # 🏗 Arquitectura
 
-fileflow/ ├─ core/ → motor de tareas ├─ actions/ → plugins (copy, zip,
-convert...) ├─ cli/ → comandos terminal ├─ gui/ → interfaz Tauri/egui ├─
-tools/ → binarios portables (7zip, pandoc...) ├─ configs/ └─ releases/
+``` Markdown
+fileflow/
+├─ core/ → motor de tareas
+├─ actions/ → plugins (copy, zip, convert...)
+├─ cli/ → comandos terminal
+├─ gui/ → interfaz Tauri/egui
+├─ tools/ → binarios portables (7zip, pandoc...)
+├─ configs/ └─ releases/
+```
 
 ------------------------------------------------------------------------
 
