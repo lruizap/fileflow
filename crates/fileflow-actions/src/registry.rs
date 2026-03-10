@@ -3,11 +3,13 @@ use fileflow_core::{Action, FileFlowError, Result};
 use crate::factory::ActionFactory;
 use crate::actions::copy_factory::CopyFactory;
 use crate::actions::echo_factory::EchoFactory;
+use crate::actions::pipeline_factory::PipelineFactory;
 
 fn factories() -> Vec<Box<dyn ActionFactory>> {
     vec![
         Box::new(EchoFactory),
         Box::new(CopyFactory),
+        Box::new(PipelineFactory),
     ]
 }
 
@@ -25,6 +27,7 @@ pub fn build_action(name: &str, args: &[String]) -> Result<Box<dyn Action>> {
             return f.build(args);
         }
     }
+
     Err(FileFlowError::Message(format!(
         "Action not found: {name}"
     )))

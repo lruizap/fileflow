@@ -3,13 +3,14 @@ use predicates::prelude::*;
 use std::fs;
 
 #[test]
-fn cli_actions_list_shows_echo_and_copy() {
+fn cli_actions_list_shows_echo_copy_and_pipeline() {
     let mut cmd = Command::cargo_bin("fileflow-cli").expect("binary should build");
     cmd.args(["actions", "list"])
         .assert()
         .success()
         .stdout(predicate::str::contains("echo"))
-        .stdout(predicate::str::contains("copy"));
+        .stdout(predicate::str::contains("copy"))
+        .stdout(predicate::str::contains("pipeline"));
 }
 
 #[test]
@@ -49,4 +50,22 @@ fn cli_run_copy_copies_file() {
     .stdout(predicate::str::contains("SUCCESS"));
 
     assert_eq!(fs::read_to_string(&dst).unwrap(), "hola");
+}
+
+#[test]
+fn cli_run_pipeline_with_two_echo_steps_success() {
+    let mut cmd = Command::cargo_bin("fileflow-cli").expect("binary should build");
+    cmd.args([
+        "run",
+        "pipeline",
+        "--",
+        "--step",
+        "echo",
+        "--step",
+        "echo",
+    ])
+    .assert()
+    .success()
+    .stdout(predicate::str::contains("SUCCESS"))
+    .stdout(predicate::str::contains("PipelineAction"));
 }
