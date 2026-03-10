@@ -2,10 +2,12 @@ use fileflow_actions::{build_action, list_actions};
 use fileflow_core::{Engine, JobStatus};
 
 #[test]
-fn list_actions_contains_echo_and_copy() {
+fn list_actions_contains_echo_copy_move_and_pipeline() {
     let actions = list_actions();
     assert!(actions.contains(&"echo"));
     assert!(actions.contains(&"copy"));
+    assert!(actions.contains(&"move"));
+    assert!(actions.contains(&"pipeline"));
 }
 
 #[test]

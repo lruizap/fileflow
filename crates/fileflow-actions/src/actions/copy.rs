@@ -1,7 +1,9 @@
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
-use fileflow_core::{Action, Context, FileFlowError, Progress, Result};
+use fileflow_core::{Action, Context, Progress, Result};
+
+use crate::fs::helpers::{prepare_destination, validate_source_file};
 
 #[derive(Debug, Clone)]
 pub struct CopyConfig {
@@ -46,37 +48,4 @@ impl Action for CopyAction {
 
         Ok(())
     }
-}
-
-fn validate_source_file(src: &Path) -> Result<()> {
-    if !src.exists() {
-        return Err(FileFlowError::Message(format!(
-            "Source does not exist: {}",
-            src.display()
-        )));
-    }
-    if !src.is_file() {
-        return Err(FileFlowError::Message(format!(
-            "Source is not a file: {}",
-            src.display()
-        )));
-    }
-    Ok(())
-}
-
-fn prepare_destination(dst: &Path, overwrite: bool) -> Result<()> {
-    if dst.exists() && !overwrite {
-        return Err(FileFlowError::Message(format!(
-            "Destination exists (use --overwrite): {}",
-            dst.display()
-        )));
-    }
-
-    if let Some(parent) = dst.parent() {
-        if !parent.as_os_str().is_empty() {
-            fs::create_dir_all(parent)?;
-        }
-    }
-
-    Ok(())
 }
