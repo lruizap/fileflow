@@ -4,6 +4,7 @@ use crate::actions::copy_factory::CopyFactory;
 use crate::actions::echo_factory::EchoFactory;
 use crate::actions::move_factory::MoveFactory;
 use crate::actions::pipeline_factory::PipelineFactory;
+use crate::actions::sync_factory::SyncFactory;
 use crate::factory::ActionFactory;
 
 fn factories() -> Vec<Box<dyn ActionFactory>> {
@@ -11,6 +12,7 @@ fn factories() -> Vec<Box<dyn ActionFactory>> {
         Box::new(EchoFactory),
         Box::new(CopyFactory),
         Box::new(MoveFactory),
+        Box::new(SyncFactory),
         Box::new(PipelineFactory),
     ]
 }
