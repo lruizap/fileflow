@@ -85,3 +85,42 @@ fn cli_run_pipeline_with_move_step_args_success() {
     assert!(!src.exists());
     assert_eq!(fs::read_to_string(&dst).unwrap(), "hola pipeline");
 }
+
+#[test]
+fn cli_run_config_json_success() {
+    let dir = tempfile::tempdir().unwrap();
+
+    let src = dir.path().join("src.txt");
+    let dst = dir.path().join("dst.txt");
+    let json_path = dir.path().join("pipeline.json");
+
+    fs::write(&src, "hola config").unwrap();
+
+    let json = format!(
+        r#"{{
+  "name": "json_demo",
+  "steps": [
+    {{
+      "action": "move",
+      "args": ["--src", "{}", "--dst", "{}", "--overwrite"]
+    }}
+  ]
+}}"#,
+        src.to_string_lossy(),
+        dst.to_string_lossy()
+    );
+
+    fs::write(&json_path, json).unwrap();
+
+    let json_s = json_path.to_string_lossy().to_string();
+
+    let mut cmd = Command::cargo_bin("fileflow-cli").expect("binary should build");
+    cmd.args(["run-config", &json_s])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("SUCCESS"))
+        .stdout(predicate::str::contains("PipelineAction"));
+
+    assert!(!src.exists());
+    assert_eq!(fs::read_to_string(&dst).unwrap(), "hola config");
+}

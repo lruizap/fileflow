@@ -1,0 +1,19 @@
+{
+  "name": "demo_move",
+  "steps": [
+    {
+      "action": "echo",
+      "args": []
+    },
+    {
+      "action": "move",
+      "args": [
+        "--src",
+        "./tmp/a.txt",
+        "--dst",
+        "./tmp/b.txt",
+        "--overwrite"
+      ]
+    }
+  ]
+}

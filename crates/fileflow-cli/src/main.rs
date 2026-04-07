@@ -1,7 +1,9 @@
+use std::path::PathBuf;
+
 use clap::{Parser, Subcommand};
 
-use fileflow_core::{Engine, JobStatus, LogEntry};
 use fileflow_actions as actions;
+use fileflow_core::{Engine, JobStatus, LogEntry};
 
 #[derive(Parser, Debug)]
 #[command(name = "fileflow")]
@@ -19,12 +21,21 @@ enum Commands {
     ///   fileflow run echo
     ///   fileflow run copy -- --src a.txt --dst b.txt --overwrite
     Run {
-        /// Nombre de la acción (ej: echo, copy)
+        /// Nombre de la acción
         action: String,
 
-        /// Argumentos de la acción (van después de --)
+        /// Argumentos de la acción
         #[arg(trailing_var_arg = true)]
         args: Vec<String>,
+    },
+
+    /// Ejecuta un pipeline desde un archivo JSON
+    ///
+    /// Ej:
+    ///   fileflow run-config .\pipelines\demo.json
+    RunConfig {
+        /// Ruta al archivo JSON
+        path: PathBuf,
     },
 
     /// Operaciones relacionadas con acciones
@@ -47,12 +58,26 @@ fn main() {
         Commands::Run { action, args } => {
             let engine = Engine::new();
 
-            // args aquí ya contiene todo lo que venga después de `--`
             let act = match actions::build_action(&action, &args) {
                 Ok(a) => a,
                 Err(e) => {
                     eprintln!("Error: {e}");
                     eprintln!("Usa: fileflow actions list");
+                    std::process::exit(1);
+                }
+            };
+
+            let out = engine.run_action(act.as_ref());
+            print_output(out.job.status, out.logs);
+        }
+
+        Commands::RunConfig { path } => {
+            let engine = Engine::new();
+
+            let act = match actions::build_pipeline_from_config_file(&path) {
+                Ok(a) => a,
+                Err(e) => {
+                    eprintln!("Error: {e}");
                     std::process::exit(1);
                 }
             };
