@@ -1,142 +1,195 @@
-# 📦 FileFlow
+# 🚀 FileFlow
 
-## 🚀 Automatizador de tareas de archivos para Windows (Rust Edition)
+**FileFlow** es un automatizador local de tareas de archivos para Windows, construido en Rust.
 
-FileFlow es una aplicación de escritorio **portable** diseñada para
-automatizar procesos repetitivos del sistema de archivos en Windows.
+Su objetivo es ofrecer una herramienta rápida, modular y portable para ejecutar procesos como copiar, mover, sincronizar archivos y ejecutar pipelines de acciones.
 
-Permite ejecutar tareas como:
+> 🧠 Filosofía: “Zapier local para archivos”
 
-- Copiar / mover archivos grandes (rápido y robusto)
-- Comprimir (ZIP / 7z)
-- Buscar archivos instantáneamente
-- Convertir imágenes y documentos
-- Ejecutar pipelines automáticos
-- Programar flujos
-- Automatizar carpetas
+---
 
-Disponible como:
+# ✨ Características
 
-- ✅ GUI
-- ✅ CLI
-- ✅ Ejecutable portable (.exe sin instalación)
+- ⚡ Alto rendimiento (Rust)
+- 📦 Portable (sin instalación, ejecutable `.exe`)
+- 🧩 Arquitectura modular (actions/plugins)
+- 🖥️ CLI funcional (GUI futura)
+- 🔗 Soporte de pipelines
+- 📄 Configuración mediante JSON
+- 🧪 Tests incluidos
 
-------------------------------------------------------------------------
+---
 
-# 🎯 Objetivos del proyecto
+# 📦 Acciones disponibles (v0.1.0)
 
-## Problema
+| Acción   | Descripción |
+|---------|------------|
+| `echo`  | Acción de prueba |
+| `copy`  | Copia archivos |
+| `move`  | Mueve archivos |
+| `sync`  | Sincroniza carpetas (nivel superior) |
+| `pipeline` | Ejecuta múltiples acciones en secuencia |
 
-Windows Explorer es lento y muy manual para tareas repetitivas.
+---
 
-## Solución
+# 🚀 Instalación
 
-FileFlow automatiza y acelera:
+## Requisitos
 
-- Copias masivas
-- Backups
-- Limpieza de discos
-- Compresiones
-- Conversiones
-- Flujos por lotes
+- Rust (<https://rustup.rs>)
 
-------------------------------------------------------------------------
+## Clonar proyecto
 
-# 🧠 Filosofía
+```bash
+git clone https://github.com/lruizap/fileflow.git
+cd fileflow
+````
 
-- Portable first (sin instalación)
-- Alto rendimiento
-- Bajo consumo de RAM
-- Automatización \> Clicks
-- Arquitectura modular (plugins)
-- CLI + GUI
-- Siempre funcional desde el primer release
+## Compilar
 
-------------------------------------------------------------------------
+```bash
+cargo build --release
+```
 
-# 🦀 Stack tecnológico
+---
 
-## Core
+# 🧪 Uso básico
 
-- Rust
-- Tokio (async + paralelismo)
-- Rayon (CPU paralelo)
-- Walkdir (filesystem scanning)
-- Serde (config JSON / YAML)
-- Clap (CLI)
+## Listar acciones
 
-## GUI
+```bash
+cargo run -p fileflow-cli -- actions list
+```
 
-- Tauri (Rust backend + frontend web ligera) o
-- egui (GUI nativa inmediata)
+---
 
-## Herramientas externas
+## Ejecutar una acción
 
-- Robocopy (Windows)
-- 7zip portable
-- Pandoc
-- ImageMagick
-- LibreOffice portable (opcional)
+```bash
+cargo run -p fileflow-cli -- run echo
+```
 
-------------------------------------------------------------------------
+---
 
-# 🏗 Arquitectura
+## Copiar archivo
 
-``` Markdown
+```bash
+cargo run -p fileflow-cli -- run copy -- --src a.txt --dst b.txt
+```
+
+---
+
+## Mover archivo
+
+```bash
+cargo run -p fileflow-cli -- run move -- --src a.txt --dst b.txt
+```
+
+---
+
+## Sincronizar carpetas
+
+```bash
+cargo run -p fileflow-cli -- run sync -- --src ./origen --dst ./destino
+```
+
+### Con eliminación de archivos extra
+
+```bash
+cargo run -p fileflow-cli -- run sync -- --src ./origen --dst ./destino --delete-extra
+```
+
+---
+
+# 🔗 Pipelines
+
+## Ejecutar pipeline desde CLI
+
+```bash
+cargo run -p fileflow-cli -- run pipeline -- --step echo --step echo
+```
+
+---
+
+## Ejecutar pipeline desde JSON
+
+```bash
+cargo run -p fileflow-cli -- run-config ./pipelines/demo.json
+```
+
+### Ejemplo de JSON
+
+```json
+{
+  "name": "demo",
+  "steps": [
+    {
+      "action": "echo",
+      "args": []
+    },
+    {
+      "action": "move",
+      "args": ["--src", "./a.txt", "--dst", "./b.txt"]
+    }
+  ]
+}
+```
+
+---
+
+# 🧪 Tests
+
+```bash
+cargo test
+```
+
+---
+
+# 🧱 Arquitectura
+
+```
 fileflow/
-├─ core/ → motor de tareas
-├─ actions/ → plugins (copy, zip, convert...)
-├─ cli/ → comandos terminal
-├─ gui/ → interfaz Tauri/egui
-├─ tools/ → binarios portables (7zip, pandoc...)
-├─ configs/ └─ releases/
+├── crates/
+│   ├── fileflow-core    # Motor de ejecución
+│   ├── fileflow-actions # Acciones y factories
+│   └── fileflow-cli     # CLI
 ```
 
-------------------------------------------------------------------------
+## Flujo interno
 
-# ⚙ Características planeadas
+```
+CLI → Registry → Action → Engine → Job → Logs → Resultado
+```
 
-## MVP
+---
 
-- Cola de tareas
-- Copiar / mover robusto
-- Compresión 7zip
-- Logs
-- UI mínima
+# ⚠️ Limitaciones actuales (v0.1.0)
 
-## v0.2
+- `sync` solo funciona en nivel superior (no recursivo)
+- No hay GUI aún
+- No hay watchers automáticos
+- No hay ejecución async
 
-- Buscador rápido
-- Presets
+---
 
-## v0.3
+# 🔮 Roadmap
 
-- Pipelines
+- Sync recursivo (walkdir)
 - Watchers de carpetas
-- Renombrado masivo
-- Deduplicado
+- GUI multiplataforma
+- Plugins dinámicos
+- Paralelismo (tokio / rayon)
+- Integración con herramientas externas (7zip, robocopy)
 
-## v1.0
+---
 
-- Conversión imágenes / documentos
-- OCR
-- CLI completa
-- Menú contextual Windows
+# 👨‍💻 Autor
 
-------------------------------------------------------------------------
+Lucas Ruiz
+Proyecto personal de automatización en Rust
 
-# 🚀 Ejemplos de uso CLI
+---
 
-``` bash
-fileflow copy origen destino
-fileflow compress carpeta/
-fileflow convert *.md --pdf
-fileflow pipeline run backup-nas
-```
+# 📄 Licencia
 
-------------------------------------------------------------------------
-
-# 📌 Estado del proyecto
-
-Actualmente en desarrollo activo. Arquitectura modular orientada a
-crecimiento progresivo por versiones.
+MIT
