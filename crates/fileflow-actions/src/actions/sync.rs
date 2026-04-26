@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
 use fileflow_core::{Action, Context, FileFlowError, Progress, Result};
+use walkdir::WalkDir;
 
 #[derive(Debug, Clone)]
 pub struct SyncConfig {
@@ -11,6 +12,7 @@ pub struct SyncConfig {
     pub dst: PathBuf,
     pub delete_extra: bool,
     pub overwrite: bool,
+    pub recursive: bool,
 }
 
 pub struct SyncAction {
@@ -37,56 +39,55 @@ impl Action for SyncAction {
         validate_source_dir(src)?;
         fs::create_dir_all(dst)?;
 
-        let src_files = read_top_level_files(src)?;
-        let dst_files = read_top_level_files(dst)?;
+        let src_files = read_files(src, self.cfg.recursive)?;
+        let dst_files = read_files(dst, self.cfg.recursive)?;
 
-        let total_steps = src_files.len() as u64
-            + if self.cfg.delete_extra {
-                dst_files.len() as u64
-            } else {
-                0
-            };
+        let total_steps =
+            src_files.len() as u64 + if self.cfg.delete_extra { dst_files.len() as u64 } else { 0 };
+
         ctx.info(format!(
-            "SyncAction: {} -> {} ({} source files)",
+            "SyncAction: {} -> {} | recursive={} | source files={}",
             src.display(),
             dst.display(),
+            self.cfg.recursive,
             src_files.len()
         ));
+
         ctx.set_progress(Progress::new(0, total_steps).with_message("Iniciando sync"));
 
         let mut processed = 0u64;
 
-        let dst_map: HashMap<String, PathBuf> = dst_files
-            .iter()
-            .map(|p| (file_name_string(p).unwrap_or_default(), p.clone()))
-            .collect();
-
-        let mut src_names = HashSet::new();
+        let dst_map = build_relative_map(dst, &dst_files)?;
+        let mut src_rel_paths = HashSet::new();
 
         for src_file in &src_files {
             ctx.ensure_not_cancelled()?;
 
-            let file_name = file_name_string(src_file)?;
-            src_names.insert(file_name.clone());
+            let rel = relative_key(src, src_file)?;
+            src_rel_paths.insert(rel.clone());
 
-            let dst_file = dst.join(&file_name);
+            let dst_file = dst.join(&rel);
 
-            if let Some(existing_dst) = dst_map.get(&file_name) {
-                if should_copy(src_file, existing_dst)? {
-                    ctx.info(format!("SyncAction: updating {}", file_name));
+            if let Some(parent) = dst_file.parent() {
+                fs::create_dir_all(parent)?;
+            }
+
+            if let Some(existing_dst) = dst_map.get(&rel) {
+                if self.cfg.overwrite || should_copy(src_file, existing_dst)? {
+                    ctx.info(format!("SyncAction: updating {}", rel.display()));
                     fs::copy(src_file, &dst_file)?;
                 } else {
-                    ctx.info(format!("SyncAction: skipping {}", file_name));
+                    ctx.info(format!("SyncAction: skipping {}", rel.display()));
                 }
             } else {
-                ctx.info(format!("SyncAction: copying {}", file_name));
+                ctx.info(format!("SyncAction: copying {}", rel.display()));
                 fs::copy(src_file, &dst_file)?;
             }
 
             processed += 1;
             ctx.set_progress(
                 Progress::new(processed, total_steps)
-                    .with_message(format!("Procesado: {}", file_name)),
+                    .with_message(format!("Procesado: {}", rel.display())),
             );
         }
 
@@ -94,16 +95,17 @@ impl Action for SyncAction {
             for dst_file in &dst_files {
                 ctx.ensure_not_cancelled()?;
 
-                let file_name = file_name_string(dst_file)?;
-                if !src_names.contains(&file_name) {
-                    ctx.info(format!("SyncAction: deleting extra {}", file_name));
+                let rel = relative_key(dst, dst_file)?;
+
+                if !src_rel_paths.contains(&rel) {
+                    ctx.info(format!("SyncAction: deleting extra {}", rel.display()));
                     fs::remove_file(dst_file)?;
                 }
 
                 processed += 1;
                 ctx.set_progress(
                     Progress::new(processed, total_steps)
-                        .with_message(format!("Revisado destino: {}", file_name)),
+                        .with_message(format!("Revisado destino: {}", rel.display())),
                 );
             }
         }
@@ -131,15 +133,26 @@ fn validate_source_dir(src: &Path) -> Result<()> {
     Ok(())
 }
 
-fn read_top_level_files(dir: &Path) -> Result<Vec<PathBuf>> {
+fn read_files(dir: &Path, recursive: bool) -> Result<Vec<PathBuf>> {
     let mut files = Vec::new();
 
-    for entry in fs::read_dir(dir)? {
-        let entry = entry?;
-        let path = entry.path();
+    if recursive {
+        for entry in WalkDir::new(dir) {
+            let entry = entry.map_err(|e| FileFlowError::Message(e.to_string()))?;
+            let path = entry.path();
 
-        if path.is_file() {
-            files.push(path);
+            if path.is_file() {
+                files.push(path.to_path_buf());
+            }
+        }
+    } else {
+        for entry in fs::read_dir(dir)? {
+            let entry = entry?;
+            let path = entry.path();
+
+            if path.is_file() {
+                files.push(path);
+            }
         }
     }
 
@@ -147,12 +160,26 @@ fn read_top_level_files(dir: &Path) -> Result<Vec<PathBuf>> {
     Ok(files)
 }
 
-fn file_name_string(path: &Path) -> Result<String> {
-    path.file_name()
-        .and_then(|n| n.to_str())
-        .map(|s| s.to_string())
-        .ok_or_else(|| {
-            FileFlowError::Message(format!("Invalid file name for path: {}", path.display()))
+fn build_relative_map(base: &Path, files: &[PathBuf]) -> Result<HashMap<PathBuf, PathBuf>> {
+    let mut map = HashMap::new();
+
+    for file in files {
+        let rel = relative_key(base, file)?;
+        map.insert(rel, file.clone());
+    }
+
+    Ok(map)
+}
+
+fn relative_key(base: &Path, file: &Path) -> Result<PathBuf> {
+    file.strip_prefix(base)
+        .map(|p| p.to_path_buf())
+        .map_err(|e| {
+            FileFlowError::Message(format!(
+                "Could not calculate relative path for '{}': {}",
+                file.display(),
+                e
+            ))
         })
 }
 

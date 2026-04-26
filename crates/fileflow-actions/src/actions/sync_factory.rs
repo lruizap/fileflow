@@ -14,7 +14,7 @@ impl ActionFactory for SyncFactory {
     }
 
     fn help(&self) -> &'static str {
-        "sync  -> --src <dir> --dst <dir> [--delete-extra]"
+        "sync  -> --src <dir> --dst <dir> [--recursive] [--delete-extra] [--overwrite]"
     }
 
     fn build(&self, args: &[String]) -> Result<Box<dyn Action>> {
@@ -24,12 +24,14 @@ impl ActionFactory for SyncFactory {
         let dst = PathBuf::from(parsed.require_str("dst")?);
         let delete_extra = parsed.has_flag("delete-extra");
         let overwrite = parsed.has_flag("overwrite");
+        let recursive = parsed.has_flag("recursive");
 
         let cfg = SyncConfig {
             src,
             dst,
             delete_extra,
             overwrite,
+            recursive,
         };
 
         Ok(Box::new(SyncAction::new(cfg)))
