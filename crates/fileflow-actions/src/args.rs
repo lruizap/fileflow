@@ -46,8 +46,8 @@ impl ParsedArgs {
     }
 
     pub fn require_str(&self, key: &str) -> Result<String> {
-        self.get_str(key)
-            .map(|s| s.to_string())
-            .ok_or_else(|| FileFlowError::Message(format!("Missing required flag: --{key} <value>")))
+        self.get_str(key).map(|s| s.to_string()).ok_or_else(|| {
+            FileFlowError::Message(format!("Missing required flag: --{key} <value>"))
+        })
     }
 }

@@ -24,7 +24,11 @@ impl ActionFactory for MoveFactory {
         let dst = PathBuf::from(parsed.require_str("dst")?);
         let overwrite = parsed.has_flag("overwrite");
 
-        let cfg = MoveConfig { src, dst, overwrite };
+        let cfg = MoveConfig {
+            src,
+            dst,
+            overwrite,
+        };
         Ok(Box::new(MoveAction::new(cfg)))
     }
 }

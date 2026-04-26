@@ -95,23 +95,21 @@ fn main() {
             print_output(out.job.status, out.logs);
         }
 
-        Commands::ValidateConfig { path } => {
-            match actions::load_pipeline_config(&path) {
-                Ok(config) => {
-                    println!("Config OK");
-                    println!("Nombre: {}", config.name);
-                    println!("Steps: {}", config.steps.len());
+        Commands::ValidateConfig { path } => match actions::load_pipeline_config(&path) {
+            Ok(config) => {
+                println!("Config OK");
+                println!("Nombre: {}", config.name);
+                println!("Steps: {}", config.steps.len());
 
-                    for (index, step) in config.steps.iter().enumerate() {
-                        println!("  {}. {}", index + 1, step.action);
-                    }
-                }
-                Err(e) => {
-                    eprintln!("Config inválida: {e}");
-                    std::process::exit(1);
+                for (index, step) in config.steps.iter().enumerate() {
+                    println!("  {}. {}", index + 1, step.action);
                 }
             }
-        }
+            Err(e) => {
+                eprintln!("Config inválida: {e}");
+                std::process::exit(1);
+            }
+        },
 
         Commands::Actions { command } => match command {
             ActionsCommands::List => {

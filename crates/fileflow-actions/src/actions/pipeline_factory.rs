@@ -44,9 +44,7 @@ impl ActionFactory for PipelineFactory {
     }
 }
 
-fn parse_pipeline_args(
-    args: &[String],
-) -> Result<(Vec<String>, HashMap<String, Vec<String>>)> {
+fn parse_pipeline_args(args: &[String]) -> Result<(Vec<String>, HashMap<String, Vec<String>>)> {
     let mut step_names = Vec::new();
     let mut step_args_map: HashMap<String, Vec<String>> = HashMap::new();
 

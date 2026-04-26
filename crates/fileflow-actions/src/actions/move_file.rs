@@ -4,9 +4,7 @@ use std::path::PathBuf;
 use fileflow_core::{Action, Context, Progress, Result};
 
 use crate::fs::helpers::{
-    prepare_destination,
-    remove_destination_if_overwrite,
-    validate_source_file,
+    prepare_destination, remove_destination_if_overwrite, validate_source_file,
 };
 
 #[derive(Debug, Clone)]
@@ -37,7 +35,11 @@ impl Action for MoveAction {
         let src = &self.cfg.src;
         let dst = &self.cfg.dst;
 
-        ctx.info(format!("MoveAction: {} -> {}", src.display(), dst.display()));
+        ctx.info(format!(
+            "MoveAction: {} -> {}",
+            src.display(),
+            dst.display()
+        ));
         ctx.set_progress(Progress::new(0, 2).with_message("Validando..."));
 
         validate_source_file(src)?;

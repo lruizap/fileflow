@@ -2,9 +2,9 @@ use std::path::PathBuf;
 
 use fileflow_core::{Action, Result};
 
+use crate::actions::copy::{CopyAction, CopyConfig};
 use crate::args::ParsedArgs;
 use crate::factory::ActionFactory;
-use crate::actions::copy::{CopyAction, CopyConfig};
 
 pub struct CopyFactory;
 
@@ -26,7 +26,11 @@ impl ActionFactory for CopyFactory {
         // --overwrite (boolean)
         let overwrite = parsed.has_flag("overwrite");
 
-        let cfg = CopyConfig { src, dst, overwrite };
+        let cfg = CopyConfig {
+            src,
+            dst,
+            overwrite,
+        };
         Ok(Box::new(CopyAction::new(cfg)))
     }
 }

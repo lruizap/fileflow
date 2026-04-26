@@ -1,7 +1,7 @@
 use fileflow_core::{Action, Result};
 
-use crate::factory::ActionFactory;
 use crate::actions::echo::EchoAction;
+use crate::factory::ActionFactory;
 
 pub struct EchoFactory;
 

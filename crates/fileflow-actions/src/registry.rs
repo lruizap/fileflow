@@ -22,7 +22,10 @@ pub fn list_actions() -> Vec<&'static str> {
 }
 
 pub fn list_actions_help() -> Vec<(&'static str, &'static str)> {
-    factories().into_iter().map(|f| (f.name(), f.help())).collect()
+    factories()
+        .into_iter()
+        .map(|f| (f.name(), f.help()))
+        .collect()
 }
 
 pub fn build_action(name: &str, args: &[String]) -> Result<Box<dyn Action>> {

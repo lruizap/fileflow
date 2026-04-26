@@ -33,7 +33,11 @@ impl Action for CopyAction {
         let src = &self.cfg.src;
         let dst = &self.cfg.dst;
 
-        ctx.info(format!("CopyAction: {} -> {}", src.display(), dst.display()));
+        ctx.info(format!(
+            "CopyAction: {} -> {}",
+            src.display(),
+            dst.display()
+        ));
         ctx.set_progress(Progress::new(0, 1).with_message("Validando..."));
 
         validate_source_file(src)?;

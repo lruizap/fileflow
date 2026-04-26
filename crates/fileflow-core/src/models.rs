@@ -21,7 +21,11 @@ pub struct Progress {
 
 impl Progress {
     pub fn new(current: u64, total: u64) -> Self {
-        Self { current, total, message: None }
+        Self {
+            current,
+            total,
+            message: None,
+        }
     }
 
     pub fn with_message(mut self, msg: impl Into<String>) -> Self {
@@ -30,7 +34,9 @@ impl Progress {
     }
 
     pub fn percent(&self) -> Option<f64> {
-        if self.total == 0 { return None; }
+        if self.total == 0 {
+            return None;
+        }
         Some((self.current as f64 / self.total as f64) * 100.0)
     }
 }

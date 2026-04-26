@@ -40,7 +40,12 @@ impl Action for SyncAction {
         let src_files = read_top_level_files(src)?;
         let dst_files = read_top_level_files(dst)?;
 
-        let total_steps = src_files.len() as u64 + if self.cfg.delete_extra { dst_files.len() as u64 } else { 0 };
+        let total_steps = src_files.len() as u64
+            + if self.cfg.delete_extra {
+                dst_files.len() as u64
+            } else {
+                0
+            };
         ctx.info(format!(
             "SyncAction: {} -> {} ({} source files)",
             src.display(),
@@ -147,10 +152,7 @@ fn file_name_string(path: &Path) -> Result<String> {
         .and_then(|n| n.to_str())
         .map(|s| s.to_string())
         .ok_or_else(|| {
-            FileFlowError::Message(format!(
-                "Invalid file name for path: {}",
-                path.display()
-            ))
+            FileFlowError::Message(format!("Invalid file name for path: {}", path.display()))
         })
 }
 
