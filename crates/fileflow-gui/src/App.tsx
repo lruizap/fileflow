@@ -3,6 +3,8 @@ import { invoke } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import "./App.css";
 
+import fileflowIcon from "./assets/fileflow-icon.svg";
+
 type GuiRunResult = {
   status: string;
   logs: string[];
@@ -219,13 +221,17 @@ function App() {
       )}
 
       <section className="hero">
-        <div>
-          <p className="eyebrow">FileFlow GUI</p>
-          <h1>Automatización local de archivos</h1>
-          <p className="subtitle">
-            Elige archivos y carpetas, ejecuta acciones y controla el resultado
-            desde una interfaz visual.
-          </p>
+        <div className="brand-header">
+          <img src={fileflowIcon} alt="FileFlow icon" className="app-logo" />
+
+          <div>
+            <p className="eyebrow">FileFlow GUI</p>
+            <h1>Automatización local de archivos</h1>
+            <p className="subtitle">
+              Elige archivos y carpetas, ejecuta acciones y controla el
+              resultado desde una interfaz visual.
+            </p>
+          </div>
         </div>
 
         <div className={`status-pill ${statusClass}`}>
