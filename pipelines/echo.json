@@ -1,0 +1,9 @@
+{
+  "name": "echo_demo",
+  "steps": [
+    {
+      "action": "echo",
+      "args": []
+    }
+  ]
+}

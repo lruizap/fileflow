@@ -15,7 +15,7 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
-    /// Ejecuta una acción por nombre (usa -- para pasar args a la acción)
+    /// Ejecuta una acción por nombre
     ///
     /// Ej:
     ///   fileflow run echo
@@ -34,6 +34,15 @@ enum Commands {
     /// Ej:
     ///   fileflow run-config .\pipelines\demo.json
     RunConfig {
+        /// Ruta al archivo JSON
+        path: PathBuf,
+    },
+
+    /// Valida un archivo JSON de pipeline sin ejecutarlo
+    ///
+    /// Ej:
+    ///   fileflow validate-config .\pipelines\demo.json
+    ValidateConfig {
         /// Ruta al archivo JSON
         path: PathBuf,
     },
@@ -84,6 +93,24 @@ fn main() {
 
             let out = engine.run_action(act.as_ref());
             print_output(out.job.status, out.logs);
+        }
+
+        Commands::ValidateConfig { path } => {
+            match actions::load_pipeline_config(&path) {
+                Ok(config) => {
+                    println!("Config OK");
+                    println!("Nombre: {}", config.name);
+                    println!("Steps: {}", config.steps.len());
+
+                    for (index, step) in config.steps.iter().enumerate() {
+                        println!("  {}. {}", index + 1, step.action);
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Config inválida: {e}");
+                    std::process::exit(1);
+                }
+            }
         }
 
         Commands::Actions { command } => match command {
