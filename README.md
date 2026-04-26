@@ -2,20 +2,21 @@
 
 **FileFlow** es un automatizador local de tareas de archivos para Windows, construido en Rust.
 
-Su objetivo es ofrecer una herramienta rápida, modular y portable para ejecutar procesos como copiar, mover, sincronizar archivos y ejecutar pipelines de acciones.
+Permite ejecutar acciones como copiar, mover, sincronizar archivos y automatizar procesos mediante pipelines reutilizables.
 
-> 🧠 Filosofía: “Zapier local para archivos”
+> 🧠 Filosofía: **“Zapier local para archivos”**
 
 ---
 
 # ✨ Características
 
 - ⚡ Alto rendimiento (Rust)
-- 📦 Portable (sin instalación, ejecutable `.exe`)
+- 📦 Portable (ejecutable `.exe`, sin instalación)
 - 🧩 Arquitectura modular (actions/plugins)
 - 🖥️ CLI funcional (GUI futura)
 - 🔗 Soporte de pipelines
 - 📄 Configuración mediante JSON
+- ✅ Validación de configuraciones (`validate-config`)
 - 🧪 Tests incluidos
 
 ---
@@ -36,9 +37,9 @@ Su objetivo es ofrecer una herramienta rápida, modular y portable para ejecutar
 
 ## Requisitos
 
-- Rust (<https://rustup.rs>)
+- Rust → <https://rustup.rs>
 
-## Clonar proyecto
+## Clonar repositorio
 
 ```bash
 git clone https://github.com/lruizap/fileflow.git
@@ -51,11 +52,17 @@ cd fileflow
 cargo build --release
 ```
 
+El ejecutable estará en:
+
+```bash
+target/release/fileflow-cli.exe
+```
+
 ---
 
 # 🧪 Uso básico
 
-## Listar acciones
+## Listar acciones disponibles
 
 ```bash
 cargo run -p fileflow-cli -- actions list
@@ -111,13 +118,33 @@ cargo run -p fileflow-cli -- run pipeline -- --step echo --step echo
 
 ---
 
-## Ejecutar pipeline desde JSON
+## Pipeline con argumentos
+
+```bash
+cargo run -p fileflow-cli -- run pipeline -- --step move --step-args "move:--src=./a.txt,--dst=./b.txt"
+```
+
+---
+
+# 📄 Pipelines con JSON
+
+## Ejecutar desde archivo
 
 ```bash
 cargo run -p fileflow-cli -- run-config ./pipelines/demo.json
 ```
 
-### Ejemplo de JSON
+---
+
+## Validar JSON sin ejecutar
+
+```bash
+cargo run -p fileflow-cli -- validate-config ./pipelines/demo.json
+```
+
+---
+
+## Ejemplo de JSON
 
 ```json
 {
@@ -129,10 +156,62 @@ cargo run -p fileflow-cli -- run-config ./pipelines/demo.json
     },
     {
       "action": "move",
-      "args": ["--src", "./a.txt", "--dst", "./b.txt"]
+      "args": ["--src", "./a.txt", "--dst", "./b.txt", "--overwrite"]
     }
   ]
 }
+```
+
+---
+
+# 🧪 Ejemplo real
+
+### Sincronizar carpeta automáticamente
+
+```json
+{
+  "name": "sync_docs",
+  "steps": [
+    {
+      "action": "sync",
+      "args": ["--src", "./docs", "--dst", "./backup", "--delete-extra"]
+    }
+  ]
+}
+```
+
+Ejecución:
+
+```bash
+cargo run -p fileflow-cli -- run-config ./pipelines/sync.json
+```
+
+---
+
+# ⚠️ Errores comunes
+
+## ❌ Falta de `--`
+
+Incorrecto:
+
+```bash
+fileflow run copy --src a.txt --dst b.txt
+```
+
+Correcto:
+
+```bash
+fileflow run copy -- --src a.txt --dst b.txt
+```
+
+---
+
+## ❌ Archivo o ruta no existe
+
+Verifica:
+
+```bash
+--src ./archivo.txt
 ```
 
 ---
@@ -186,10 +265,4 @@ CLI → Registry → Action → Engine → Job → Logs → Resultado
 # 👨‍💻 Autor
 
 Lucas Ruiz
-Proyecto personal de automatización en Rust
-
----
-
-# 📄 Licencia
-
-MIT
+Proyecto personal en Rust
