@@ -1,0 +1,69 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Gradientes -->
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="256" y2="256">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+
+    <linearGradient id="folderGrad" x1="0" y1="0" x2="0" y2="256">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+
+    <linearGradient id="boltGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fde047"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+
+    <!-- Glow -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Fondo -->
+  <rect x="0" y="0" width="256" height="256" rx="56" fill="url(#bgGrad)"/>
+
+  <!-- Carpeta -->
+  <path d="M44 96 
+           Q44 72 68 72 
+           H116 
+           L136 96 
+           H200 
+           Q224 96 224 120 
+           V176 
+           Q224 200 200 200 
+           H68 
+           Q44 200 44 176 Z"
+        fill="url(#folderGrad)"/>
+
+  <!-- Brillo superior carpeta -->
+  <path d="M44 96 
+           Q44 72 68 72 
+           H116 
+           L136 96 
+           H200"
+        stroke="#334155"
+        stroke-width="2"
+        fill="none"
+        opacity="0.6"/>
+
+  <!-- Rayo -->
+  <g filter="url(#glow)">
+    <path d="M132 100 
+             L104 146 
+             H130 
+             L112 192 
+             L158 130 
+             H132 
+             Z"
+          fill="url(#boltGrad)"/>
+  </g>
+
+</svg>

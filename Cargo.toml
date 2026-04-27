@@ -1,3 +1,8 @@
 [workspace]
-members = ["crates/*"]
+members = [
+    "crates/fileflow-core",
+    "crates/fileflow-actions",
+    "crates/fileflow-cli",
+    "crates/fileflow-gui/src-tauri"
+]
 resolver = "2"

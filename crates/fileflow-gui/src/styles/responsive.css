@@ -1,0 +1,36 @@
+@media (max-width: 900px) {
+  .app {
+    padding: 24px;
+  }
+
+  .hero {
+    flex-direction: column;
+  }
+
+  .brand-header {
+    flex-direction: column;
+  }
+
+  .app-logo {
+    width: 68px;
+    height: 68px;
+  }
+
+  .grid,
+  .help-list {
+    grid-template-columns: 1fr;
+  }
+
+  .logs-card {
+    grid-column: span 1;
+  }
+
+  .path-row {
+    grid-template-columns: 1fr;
+  }
+
+  .floating-help-btn {
+    right: 18px;
+    bottom: 18px;
+  }
+}
