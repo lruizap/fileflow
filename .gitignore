@@ -5,3 +5,7 @@ Cargo.lock
 .vscode/
 .idea/
 *.log
+
+
+node_modules/
+fileflow/crates/fileflow-gui/node_modules
