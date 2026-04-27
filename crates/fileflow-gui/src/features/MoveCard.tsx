@@ -37,11 +37,11 @@ export function MoveCard({
   return (
     <ActionCard
       title="Mover archivo"
-      description="Mueve un archivo a otra ubicación."
-      badge="move"
+      description="Traslada un archivo a otra ubicación y elimina el original."
+      badge="mover"
     >
       <PathInput
-        label="Archivo origen"
+        label="Archivo que quieres mover"
         value={src}
         onChange={setSrc}
         buttonText="Elegir archivo"
@@ -49,7 +49,7 @@ export function MoveCard({
       />
 
       <PathInput
-        label="Archivo destino"
+        label="Nueva ubicación del archivo"
         value={dst}
         onChange={setDst}
         buttonText="Guardar como"
@@ -62,21 +62,25 @@ export function MoveCard({
           checked={overwrite}
           onChange={(e) => setOverwrite(e.target.checked)}
         />
-        Sobrescribir destino
+        Sobrescribir si ya existe
       </label>
 
       <button
         className="primary-btn"
         disabled={loading || !src || !dst}
         onClick={() =>
-          runCommand("run_move", {
-            src,
-            dst,
-            overwrite,
-          })
+          runCommand(
+            "run_move",
+            {
+              src,
+              dst,
+              overwrite,
+            },
+            "Mover archivo",
+          )
         }
       >
-        Ejecutar Move
+        Mover archivo
       </button>
     </ActionCard>
   );

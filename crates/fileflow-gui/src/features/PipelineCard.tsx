@@ -23,12 +23,12 @@ export function PipelineCard({
 
   return (
     <ActionCard
-      title="Pipeline JSON"
-      description="Valida o ejecuta una automatización guardada."
-      badge="json"
+      title="Automatización JSON"
+      description="Valida o ejecuta una secuencia de acciones guardada en un archivo JSON."
+      badge="pipeline"
     >
       <PathInput
-        label="Archivo JSON"
+        label="Archivo JSON de automatización"
         value={configPath}
         onChange={setConfigPath}
         buttonText="Elegir JSON"
@@ -39,17 +39,29 @@ export function PipelineCard({
         <button
           className="secondary-btn"
           disabled={loading || !configPath}
-          onClick={() => runCommand("validate_config", { path: configPath })}
+          onClick={() =>
+            runCommand(
+              "validate_config",
+              { path: configPath },
+              "Validar automatización",
+            )
+          }
         >
-          Validar
+          Validar JSON
         </button>
 
         <button
           className="primary-btn"
           disabled={loading || !configPath}
-          onClick={() => runCommand("run_config", { path: configPath })}
+          onClick={() =>
+            runCommand(
+              "run_config",
+              { path: configPath },
+              "Ejecutar automatización",
+            )
+          }
         >
-          Ejecutar
+          Ejecutar automatización
         </button>
       </div>
     </ActionCard>

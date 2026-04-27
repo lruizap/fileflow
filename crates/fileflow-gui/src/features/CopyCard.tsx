@@ -37,11 +37,11 @@ export function CopyCard({
   return (
     <ActionCard
       title="Copiar archivo"
-      description="Selecciona un archivo origen y una ruta destino."
-      badge="copy"
+      description="Duplica un archivo en otra ubicación sin borrar el original."
+      badge="copiar"
     >
       <PathInput
-        label="Archivo origen"
+        label="Archivo que quieres copiar"
         value={src}
         onChange={setSrc}
         buttonText="Elegir archivo"
@@ -49,7 +49,7 @@ export function CopyCard({
       />
 
       <PathInput
-        label="Archivo destino"
+        label="Dónde guardar la copia"
         value={dst}
         onChange={setDst}
         buttonText="Guardar como"
@@ -62,21 +62,25 @@ export function CopyCard({
           checked={overwrite}
           onChange={(e) => setOverwrite(e.target.checked)}
         />
-        Sobrescribir destino
+        Sobrescribir si ya existe
       </label>
 
       <button
         className="primary-btn"
         disabled={loading || !src || !dst}
         onClick={() =>
-          runCommand("run_copy", {
-            src,
-            dst,
-            overwrite,
-          })
+          runCommand(
+            "run_copy",
+            {
+              src,
+              dst,
+              overwrite,
+            },
+            "Copiar archivo",
+          )
         }
       >
-        Ejecutar Copy
+        Copiar archivo
       </button>
     </ActionCard>
   );

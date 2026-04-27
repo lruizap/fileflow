@@ -15,9 +15,10 @@ export function HelpModal({ onClose }: Props) {
         <h2>¿Qué es FileFlow?</h2>
 
         <p>
-          FileFlow es una herramienta local para automatizar tareas de archivos:
-          copiar, mover, sincronizar carpetas y ejecutar procesos guardados en
-          JSON.
+          FileFlow es una aplicación local para automatizar tareas de archivos:
+          copiar, mover, sincronizar carpetas y ejecutar automatizaciones
+          guardadas en JSON. Está pensada para ahorrar tiempo en tareas
+          repetitivas sin depender de la nube.
         </p>
 
         <div className="help-section">
@@ -25,42 +26,67 @@ export function HelpModal({ onClose }: Props) {
 
           <div className="help-list">
             <div>
-              <strong>Echo</strong>
+              <strong>Comprobar funcionamiento</strong>
               <span>
-                Acción de prueba para comprobar que el motor responde.
+                Ejecuta una prueba rápida para verificar que el motor interno de
+                FileFlow responde correctamente.
               </span>
             </div>
 
             <div>
-              <strong>Copy</strong>
+              <strong>Copiar archivo</strong>
               <span>
-                Copia un archivo desde una ruta origen a una ruta destino.
+                Duplica un archivo en otra ubicación. El archivo original se
+                conserva.
               </span>
             </div>
 
             <div>
-              <strong>Move</strong>
-              <span>Mueve un archivo desde una ubicación a otra.</span>
-            </div>
-
-            <div>
-              <strong>Sync</strong>
+              <strong>Mover archivo</strong>
               <span>
-                Sincroniza carpetas. Puede funcionar en modo recursivo y borrar
-                archivos extra.
+                Traslada un archivo a otra ubicación. El original desaparece de
+                la carpeta inicial.
               </span>
             </div>
 
             <div>
-              <strong>Pipeline JSON</strong>
+              <strong>Sincronizar carpetas</strong>
               <span>
-                Ejecuta una automatización guardada en un archivo JSON.
+                Actualiza una carpeta destino con el contenido de una carpeta
+                origen. Puede incluir subcarpetas, sobrescribir y borrar extras.
               </span>
             </div>
 
             <div>
-              <strong>Logs</strong>
-              <span>Muestra pasos, resultado final y posibles errores.</span>
+              <strong>Automatización JSON</strong>
+              <span>
+                Permite ejecutar una secuencia de acciones guardadas en un
+                archivo JSON reutilizable.
+              </span>
+            </div>
+
+            <div>
+              <strong>Historial y logs</strong>
+              <span>
+                El historial muestra qué acciones has ejecutado. Los logs
+                muestran el detalle técnico de cada operación.
+              </span>
+            </div>
+
+            <div>
+              <strong>Alertas visuales</strong>
+              <span>
+                Después de cada ejecución verás una notificación indicando si la
+                acción terminó correctamente o si hubo un error.
+              </span>
+            </div>
+
+            <div>
+              <strong>Limpiar logs</strong>
+              <span>
+                Permite limpiar el panel de registro para revisar mejor la
+                siguiente ejecución.
+              </span>
             </div>
           </div>
         </div>
@@ -71,9 +97,9 @@ export function HelpModal({ onClose }: Props) {
           <ol className="help-steps">
             <li>Elige la acción que quieres ejecutar.</li>
             <li>Selecciona archivos o carpetas con los botones.</li>
-            <li>Marca opciones como recursivo o sobrescribir.</li>
-            <li>Pulsa ejecutar.</li>
-            <li>Revisa el resultado en logs.</li>
+            <li>Marca opciones como incluir subcarpetas o sobrescribir.</li>
+            <li>Pulsa el botón principal de la acción.</li>
+            <li>Revisa la alerta, el historial y los logs.</li>
           </ol>
         </div>
 

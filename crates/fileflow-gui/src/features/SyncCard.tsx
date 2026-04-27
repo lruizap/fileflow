@@ -45,7 +45,7 @@ export function SyncCard({
   return (
     <ActionCard
       title="Sincronizar carpetas"
-      description="Copia archivos desde origen a destino usando sync."
+      description="Actualiza una carpeta destino con el contenido de una carpeta origen."
       badge="sync"
     >
       <PathInput
@@ -71,7 +71,7 @@ export function SyncCard({
             checked={recursive}
             onChange={(e) => setRecursive(e.target.checked)}
           />
-          Recursivo
+          Incluir subcarpetas
         </label>
 
         <label className="check">
@@ -80,7 +80,7 @@ export function SyncCard({
             checked={deleteExtra}
             onChange={(e) => setDeleteExtra(e.target.checked)}
           />
-          Borrar extras
+          Borrar archivos que sobren en destino
         </label>
 
         <label className="check">
@@ -89,7 +89,7 @@ export function SyncCard({
             checked={overwrite}
             onChange={(e) => setOverwrite(e.target.checked)}
           />
-          Sobrescribir
+          Sobrescribir archivos
         </label>
       </div>
 
@@ -97,16 +97,20 @@ export function SyncCard({
         className="primary-btn"
         disabled={loading || !src || !dst}
         onClick={() =>
-          runCommand("run_sync", {
-            src,
-            dst,
-            recursive,
-            deleteExtra,
-            overwrite,
-          })
+          runCommand(
+            "run_sync",
+            {
+              src,
+              dst,
+              recursive,
+              deleteExtra,
+              overwrite,
+            },
+            "Sincronizar carpetas",
+          )
         }
       >
-        Ejecutar Sync
+        Sincronizar carpetas
       </button>
     </ActionCard>
   );

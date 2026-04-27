@@ -9,17 +9,17 @@ type Props = {
 export function EchoCard({ loading, runCommand }: Props) {
   return (
     <ActionCard
-      title="Prueba rápida"
-      description="Comprueba que el motor responde correctamente."
-      badge="echo"
+      title="Comprobar funcionamiento"
+      description="Ejecuta una prueba rápida para verificar que FileFlow responde correctamente."
+      badge="test"
       className="action-card"
     >
       <button
         className="primary-btn"
         disabled={loading}
-        onClick={() => runCommand("run_echo")}
+        onClick={() => runCommand("run_echo", undefined, "Prueba rápida")}
       >
-        {loading ? "Ejecutando..." : "Run Echo"}
+        {loading ? "Ejecutando..." : "Ejecutar prueba"}
       </button>
     </ActionCard>
   );

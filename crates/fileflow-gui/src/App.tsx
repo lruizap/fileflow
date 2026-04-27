@@ -5,13 +5,15 @@ import { invokeFileFlow } from "./api/fileflow";
 import { FloatingHelpButton } from "./components/FloatingHelpButton";
 import { Header } from "./components/Header";
 import { HelpModal } from "./components/HelpModal";
+import { HistoryPanel } from "./components/HistoryPanel";
 import { LogsPanel } from "./components/LogsPanel";
+import { Toast } from "./components/Toast";
 import { CopyCard } from "./features/CopyCard";
 import { EchoCard } from "./features/EchoCard";
 import { MoveCard } from "./features/MoveCard";
 import { PipelineCard } from "./features/PipelineCard";
 import { SyncCard } from "./features/SyncCard";
-import type { RunCommand } from "./types";
+import type { HistoryItem, RunCommand, ToastState } from "./types";
 
 function App() {
   const [showIntro, setShowIntro] = useState(true);
@@ -37,23 +39,61 @@ function App() {
     "Selecciona una acción para comenzar.",
   ]);
 
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [toast, setToast] = useState<ToastState>(null);
   const [loading, setLoading] = useState(false);
 
-  const runCommand: RunCommand = async (command, args) => {
+  function pushHistory(label: string, command: string, status: string) {
+    const item: HistoryItem = {
+      id: crypto.randomUUID(),
+      label,
+      command,
+      status,
+      createdAt: new Date().toLocaleTimeString(),
+    };
+
+    setHistory((prev) => [item, ...prev].slice(0, 8));
+  }
+
+  function showToast(toast: ToastState) {
+    setToast(toast);
+    window.setTimeout(() => setToast(null), 4500);
+  }
+
+  const runCommand: RunCommand = async (command, args, label = command) => {
     setLoading(true);
     setStatus("RUNNING");
-    setLogs((prev) => [`Ejecutando: ${command}`, ...prev]);
+    setLogs((prev) => [`Ejecutando: ${label}`, ...prev]);
 
     try {
       const result = await invokeFileFlow(command, args);
       setStatus(result.status);
       setLogs(result.logs);
+      pushHistory(label, command, result.status);
+
+      if (result.status.includes("SUCCESS")) {
+        showToast({
+          type: "success",
+          message: `${label} completado correctamente.`,
+        });
+      } else {
+        showToast({
+          type: "error",
+          message: `${label} terminó con errores.`,
+        });
+      }
     } catch (err) {
+      const errorMessage =
+        typeof err === "string" ? err : JSON.stringify(err, null, 2);
+
       setStatus("ERROR");
-      setLogs([
-        "Error ejecutando comando:",
-        typeof err === "string" ? err : JSON.stringify(err, null, 2),
-      ]);
+      setLogs(["Error ejecutando comando:", errorMessage]);
+      pushHistory(label, command, "ERROR");
+
+      showToast({
+        type: "error",
+        message: `No se pudo ejecutar ${label}.`,
+      });
     } finally {
       setLoading(false);
     }
@@ -62,6 +102,8 @@ function App() {
   return (
     <main className="app">
       {showIntro && <HelpModal onClose={() => setShowIntro(false)} />}
+
+      <Toast toast={toast} onClose={() => setToast(null)} />
 
       <Header status={status} />
 
@@ -112,7 +154,14 @@ function App() {
           runCommand={runCommand}
         />
 
-        <LogsPanel logs={logs} />
+        <HistoryPanel history={history} onClear={() => setHistory([])} />
+
+        <LogsPanel
+          logs={logs}
+          onClear={() =>
+            setLogs(["Logs limpiados. Ejecuta una acción para ver resultados."])
+          }
+        />
       </section>
 
       <FloatingHelpButton onClick={() => setShowIntro(true)} />
