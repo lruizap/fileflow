@@ -7,22 +7,22 @@ type Props = {
 
 export function HistoryPanel({ history, onClear }: Props) {
   return (
-    <article className="card history-card">
-      <div className="card-header">
+    <article className="card history-card compact-history-card">
+      <div className="card-header compact-header">
         <div>
           <h2>Historial</h2>
-          <p>Últimas acciones ejecutadas durante esta sesión.</p>
+          <p>Últimas acciones de esta sesión.</p>
         </div>
         <span className="badge">actividad</span>
       </div>
 
       {history.length === 0 ? (
-        <div className="empty-state">
+        <div className="empty-state compact-empty">
           Todavía no has ejecutado ninguna acción.
         </div>
       ) : (
         <>
-          <div className="history-list">
+          <div className="history-list compact-history-list">
             {history.map((item) => (
               <div key={item.id} className="history-item">
                 <div>

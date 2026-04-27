@@ -1,5 +1,39 @@
+.stack-card {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+}
+
 .history-card {
   min-height: 280px;
+}
+
+.compact-history-card {
+  min-height: unset;
+}
+
+.compact-header {
+  margin-bottom: 14px;
+}
+
+.compact-history-list {
+  max-height: 148px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.compact-history-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.compact-history-list::-webkit-scrollbar-track {
+  background: rgba(2, 6, 23, 0.3);
+  border-radius: 999px;
+}
+
+.compact-history-list::-webkit-scrollbar-thumb {
+  background: rgba(147, 197, 253, 0.35);
+  border-radius: 999px;
 }
 
 .history-list {
@@ -55,4 +89,8 @@
   color: #9ca8c7;
   background: rgba(2, 6, 23, 0.38);
   border: 1px dashed rgba(148, 163, 184, 0.22);
+}
+
+.compact-empty {
+  padding: 14px;
 }

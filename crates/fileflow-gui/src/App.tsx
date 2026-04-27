@@ -52,7 +52,7 @@ function App() {
       createdAt: new Date().toLocaleTimeString(),
     };
 
-    setHistory((prev) => [item, ...prev].slice(0, 8));
+    setHistory((prev) => [item, ...prev].slice(0, 20));
   }
 
   function showToast(toast: ToastState) {
@@ -108,7 +108,11 @@ function App() {
       <Header status={status} />
 
       <section className="grid">
-        <EchoCard loading={loading} runCommand={runCommand} />
+        <div className="stack-card">
+          <EchoCard loading={loading} runCommand={runCommand} />
+
+          <HistoryPanel history={history} onClear={() => setHistory([])} />
+        </div>
 
         <CopyCard
           loading={loading}
@@ -153,8 +157,6 @@ function App() {
           setConfigPath={setConfigPath}
           runCommand={runCommand}
         />
-
-        <HistoryPanel history={history} onClear={() => setHistory([])} />
 
         <LogsPanel
           logs={logs}
