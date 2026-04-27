@@ -1,3 +1,5 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 use fileflow_actions as actions;
 use fileflow_core::{Engine, JobStatus, LogEntry};
 use serde::Serialize;
