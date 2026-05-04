@@ -21,3 +21,14 @@ export type HistoryItem = {
   status: string;
   createdAt: string;
 };
+
+export type ProgressPayload = {
+  action: string;
+  file: string;
+  current: number;
+  total: number;
+  percent: number;
+  elapsedSeconds: number;
+  etaSeconds: number | null;
+  done: boolean;
+};

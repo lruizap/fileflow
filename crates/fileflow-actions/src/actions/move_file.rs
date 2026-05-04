@@ -4,7 +4,10 @@ use std::path::PathBuf;
 use fileflow_core::{Action, Context, Progress, Result};
 
 use crate::fs::helpers::{
-    prepare_destination, remove_destination_if_overwrite, validate_source_file,
+    copy_file_optimized,
+    prepare_destination,
+    remove_destination_if_overwrite,
+    validate_source_file,
 };
 
 #[derive(Debug, Clone)]
@@ -35,33 +38,42 @@ impl Action for MoveAction {
         let src = &self.cfg.src;
         let dst = &self.cfg.dst;
 
-        ctx.info(format!(
-            "MoveAction: {} -> {}",
-            src.display(),
-            dst.display()
-        ));
-        ctx.set_progress(Progress::new(0, 2).with_message("Validando..."));
+        ctx.info(format!("MoveAction: {} -> {}", src.display(), dst.display()));
 
         validate_source_file(src)?;
         prepare_destination(dst, self.cfg.overwrite)?;
         remove_destination_if_overwrite(dst, self.cfg.overwrite)?;
 
-        ctx.ensure_not_cancelled()?;
-        ctx.info("MoveAction: moviendo archivo...");
-        ctx.set_progress(Progress::new(1, 2).with_message("Moviendo..."));
+        let total = fs::metadata(src)?.len().max(1);
+
+        ctx.set_progress(
+            Progress::new(0, total).with_message(format!("Moviendo {}", src.display())),
+        );
 
         match fs::rename(src, dst) {
             Ok(_) => {
                 ctx.info("MoveAction: rename directo completado");
+                ctx.set_progress(Progress::new(total, total).with_message("Movimiento completado"));
             }
             Err(_) => {
                 ctx.warn("MoveAction: rename falló, usando fallback copy + delete");
-                fs::copy(src, dst)?;
+
+                copy_file_optimized(
+                    src,
+                    dst,
+                    ctx,
+                    0,
+                    total,
+                    src.file_name()
+                        .and_then(|n| n.to_str())
+                        .unwrap_or("archivo"),
+                )?;
+
                 fs::remove_file(src)?;
+                ctx.set_progress(Progress::new(total, total).with_message("Movimiento completado"));
             }
         }
 
-        ctx.set_progress(Progress::new(2, 2).with_message("Movido"));
         ctx.info("MoveAction: OK");
 
         Ok(())

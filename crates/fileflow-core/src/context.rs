@@ -9,11 +9,14 @@ use crate::{
     models::Progress,
 };
 
-#[derive(Debug, Clone)]
+type ProgressListener = Arc<dyn Fn(Progress) + Send + Sync>;
+
+#[derive(Clone)]
 pub struct Context {
     logs: Vec<LogEntry>,
     progress: Option<Progress>,
     cancel_flag: Arc<AtomicBool>,
+    progress_listener: Option<ProgressListener>,
 }
 
 impl Context {
@@ -22,6 +25,16 @@ impl Context {
             logs: Vec::new(),
             progress: None,
             cancel_flag: Arc::new(AtomicBool::new(false)),
+            progress_listener: None,
+        }
+    }
+
+    pub fn with_progress_listener(listener: ProgressListener) -> Self {
+        Self {
+            logs: Vec::new(),
+            progress: None,
+            cancel_flag: Arc::new(AtomicBool::new(false)),
+            progress_listener: Some(listener),
         }
     }
 
@@ -42,7 +55,11 @@ impl Context {
     }
 
     pub fn set_progress(&mut self, progress: Progress) {
-        self.progress = Some(progress);
+        self.progress = Some(progress.clone());
+
+        if let Some(listener) = &self.progress_listener {
+            listener(progress);
+        }
     }
 
     pub fn progress(&self) -> Option<&Progress> {
@@ -53,7 +70,6 @@ impl Context {
         self.logs
     }
 
-    // Preparado para cancelación futura:
     pub fn cancel(&self) {
         self.cancel_flag.store(true, Ordering::SeqCst);
     }
@@ -66,6 +82,7 @@ impl Context {
         if self.is_cancelled() {
             return Err(FileFlowError::Cancelled);
         }
+
         Ok(())
     }
 }

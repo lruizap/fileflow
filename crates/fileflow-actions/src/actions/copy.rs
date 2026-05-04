@@ -3,7 +3,11 @@ use std::path::PathBuf;
 
 use fileflow_core::{Action, Context, Progress, Result};
 
-use crate::fs::helpers::{prepare_destination, validate_source_file};
+use crate::fs::helpers::{
+    copy_file_optimized,
+    prepare_destination,
+    validate_source_file,
+};
 
 #[derive(Debug, Clone)]
 pub struct CopyConfig {
@@ -33,21 +37,29 @@ impl Action for CopyAction {
         let src = &self.cfg.src;
         let dst = &self.cfg.dst;
 
-        ctx.info(format!(
-            "CopyAction: {} -> {}",
-            src.display(),
-            dst.display()
-        ));
-        ctx.set_progress(Progress::new(0, 1).with_message("Validando..."));
+        ctx.info(format!("CopyAction: {} -> {}", src.display(), dst.display()));
 
         validate_source_file(src)?;
         prepare_destination(dst, self.cfg.overwrite)?;
 
-        ctx.ensure_not_cancelled()?;
-        ctx.info("CopyAction: copiando archivo...");
-        fs::copy(src, dst)?;
+        let total = fs::metadata(src)?.len().max(1);
 
-        ctx.set_progress(Progress::new(1, 1).with_message("Copiado"));
+        ctx.set_progress(
+            Progress::new(0, total).with_message(format!("Copiando {}", src.display())),
+        );
+
+        copy_file_optimized(
+            src,
+            dst,
+            ctx,
+            0,
+            total,
+            src.file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or("archivo"),
+        )?;
+
+        ctx.set_progress(Progress::new(total, total).with_message("Copia completada"));
         ctx.info("CopyAction: OK");
 
         Ok(())

@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { listen } from "@tauri-apps/api/event";
 import "./App.css";
 
 import { invokeFileFlow } from "./api/fileflow";
 import { FloatingHelpButton } from "./components/FloatingHelpButton";
+import { FloatingProgress } from "./components/FloatingProgress";
 import { Header } from "./components/Header";
 import { HelpModal } from "./components/HelpModal";
 import { HistoryPanel } from "./components/HistoryPanel";
@@ -13,7 +15,12 @@ import { EchoCard } from "./features/EchoCard";
 import { MoveCard } from "./features/MoveCard";
 import { PipelineCard } from "./features/PipelineCard";
 import { SyncCard } from "./features/SyncCard";
-import type { HistoryItem, RunCommand, ToastState } from "./types";
+import type {
+  HistoryItem,
+  ProgressPayload,
+  RunCommand,
+  ToastState,
+} from "./types";
 
 function App() {
   const [showIntro, setShowIntro] = useState(true);
@@ -43,6 +50,35 @@ function App() {
   const [toast, setToast] = useState<ToastState>(null);
   const [loading, setLoading] = useState(false);
 
+  const [progress, setProgress] = useState<ProgressPayload | null>(null);
+  const [showProgress, setShowProgress] = useState(false);
+
+  useEffect(() => {
+    const unlistenPromise = listen<ProgressPayload>(
+      "fileflow-progress",
+      (event) => {
+        setProgress(event.payload);
+      },
+    );
+
+    return () => {
+      unlistenPromise.then((unlisten) => unlisten());
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      setShowProgress(false);
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setShowProgress(true);
+    }, 10_000);
+
+    return () => window.clearTimeout(timer);
+  }, [loading]);
+
   function pushHistory(label: string, command: string, status: string) {
     const item: HistoryItem = {
       id: crypto.randomUUID(),
@@ -62,6 +98,8 @@ function App() {
 
   const runCommand: RunCommand = async (command, args, label = command) => {
     setLoading(true);
+    setShowProgress(false);
+    setProgress(null);
     setStatus("RUNNING");
     setLogs((prev) => [`Ejecutando: ${label}`, ...prev]);
 
@@ -96,6 +134,7 @@ function App() {
       });
     } finally {
       setLoading(false);
+      window.setTimeout(() => setProgress(null), 1500);
     }
   };
 
@@ -104,6 +143,8 @@ function App() {
       {showIntro && <HelpModal onClose={() => setShowIntro(false)} />}
 
       <Toast toast={toast} onClose={() => setToast(null)} />
+
+      <FloatingProgress progress={progress} visible={showProgress && loading} />
 
       <Header status={status} />
 

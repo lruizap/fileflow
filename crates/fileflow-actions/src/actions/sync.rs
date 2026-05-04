@@ -6,7 +6,7 @@ use std::time::SystemTime;
 use fileflow_core::{Action, Context, FileFlowError, Progress, Result};
 use walkdir::WalkDir;
 
-const LARGE_FILE_THRESHOLD_BYTES: u64 = 10 * 1024 * 1024 * 1024; // 10 GB
+use crate::fs::helpers::copy_file_optimized;
 
 #[derive(Debug, Clone)]
 pub struct SyncConfig {
@@ -44,8 +44,7 @@ impl Action for SyncAction {
         let src_files = read_files(src, self.cfg.recursive)?;
         let dst_files = read_files(dst, self.cfg.recursive)?;
 
-        let total_steps =
-            src_files.len() as u64 + if self.cfg.delete_extra { dst_files.len() as u64 } else { 0 };
+        let total_bytes = calculate_total_bytes(&src_files)?.max(1);
 
         ctx.info(format!(
             "SyncAction: {} -> {} | recursive={} | source files={}",
@@ -55,16 +54,18 @@ impl Action for SyncAction {
             src_files.len()
         ));
 
-        ctx.set_progress(Progress::new(0, total_steps).with_message("Iniciando sync"));
+        ctx.set_progress(Progress::new(0, total_bytes).with_message("Iniciando sync"));
 
-        let mut processed = 0u64;
         let dst_map = build_relative_map(dst, &dst_files)?;
         let mut src_rel_paths = HashSet::new();
+        let mut processed_bytes = 0u64;
 
         for src_file in &src_files {
             ctx.ensure_not_cancelled()?;
 
             let rel = relative_key(src, src_file)?;
+            let file_size = fs::metadata(src_file)?.len();
+
             src_rel_paths.insert(rel.clone());
 
             let dst_file = dst.join(&rel);
@@ -72,20 +73,36 @@ impl Action for SyncAction {
             if let Some(existing_dst) = dst_map.get(&rel) {
                 if self.cfg.overwrite || should_copy(src_file, existing_dst)? {
                     ctx.info(format!("SyncAction: updating {}", rel.display()));
-                    copy_file_optimized(src_file, &dst_file, ctx)?;
+
+                    copy_file_optimized(
+                        src_file,
+                        &dst_file,
+                        ctx,
+                        processed_bytes,
+                        total_bytes,
+                        rel.display().to_string(),
+                    )?;
                 } else {
                     ctx.info(format!("SyncAction: skipping {}", rel.display()));
+                    ctx.set_progress(
+                        Progress::new(processed_bytes + file_size, total_bytes)
+                            .with_message(format!("Saltado: {}", rel.display())),
+                    );
                 }
             } else {
                 ctx.info(format!("SyncAction: copying {}", rel.display()));
-                copy_file_optimized(src_file, &dst_file, ctx)?;
+
+                copy_file_optimized(
+                    src_file,
+                    &dst_file,
+                    ctx,
+                    processed_bytes,
+                    total_bytes,
+                    rel.display().to_string(),
+                )?;
             }
 
-            processed += 1;
-            ctx.set_progress(
-                Progress::new(processed, total_steps)
-                    .with_message(format!("Procesado: {}", rel.display())),
-            );
+            processed_bytes += file_size;
         }
 
         if self.cfg.delete_extra {
@@ -98,16 +115,12 @@ impl Action for SyncAction {
                     ctx.info(format!("SyncAction: deleting extra {}", rel.display()));
                     fs::remove_file(dst_file)?;
                 }
-
-                processed += 1;
-                ctx.set_progress(
-                    Progress::new(processed, total_steps)
-                        .with_message(format!("Revisado destino: {}", rel.display())),
-                );
             }
         }
 
+        ctx.set_progress(Progress::new(total_bytes, total_bytes).with_message("Sync completado"));
         ctx.info("SyncAction: OK");
+
         Ok(())
     }
 }
@@ -157,6 +170,16 @@ fn read_files(dir: &Path, recursive: bool) -> Result<Vec<PathBuf>> {
     Ok(files)
 }
 
+fn calculate_total_bytes(files: &[PathBuf]) -> Result<u64> {
+    let mut total = 0u64;
+
+    for file in files {
+        total += fs::metadata(file)?.len();
+    }
+
+    Ok(total)
+}
+
 fn build_relative_map(base: &Path, files: &[PathBuf]) -> Result<HashMap<PathBuf, PathBuf>> {
     let mut map = HashMap::new();
 
@@ -196,64 +219,4 @@ fn should_copy(src: &Path, dst: &Path) -> Result<bool> {
 
 fn modified_or_epoch(meta: &fs::Metadata) -> SystemTime {
     meta.modified().unwrap_or(SystemTime::UNIX_EPOCH)
-}
-
-fn copy_file_optimized(src: &Path, dst: &Path, ctx: &mut Context) -> Result<()> {
-    if let Some(parent) = dst.parent() {
-        fs::create_dir_all(parent)?;
-    }
-
-    let size = fs::metadata(src)?.len();
-
-    if size >= LARGE_FILE_THRESHOLD_BYTES {
-        ctx.info(format!(
-            "SyncAction: large file detected ({} GB). Using fast direct copy.",
-            size / 1024 / 1024 / 1024
-        ));
-
-        copy_file_fast(src, dst)
-    } else {
-        ctx.info("SyncAction: using safe copy strategy");
-        copy_file_safely(src, dst)
-    }
-}
-
-fn copy_file_fast(src: &Path, dst: &Path) -> Result<()> {
-    fs::copy(src, dst)?;
-    Ok(())
-}
-
-fn copy_file_safely(src: &Path, dst: &Path) -> Result<()> {
-    let tmp = temp_path_for(dst);
-
-    if tmp.exists() {
-        fs::remove_file(&tmp)?;
-    }
-
-    fs::copy(src, &tmp)?;
-
-    if dst.exists() {
-        fs::remove_file(dst)?;
-    }
-
-    fs::rename(&tmp, dst).map_err(|e| {
-        let _ = fs::remove_file(&tmp);
-        FileFlowError::Message(format!(
-            "Could not replace '{}' after copying '{}': {}",
-            dst.display(),
-            src.display(),
-            e
-        ))
-    })?;
-
-    Ok(())
-}
-
-fn temp_path_for(dst: &Path) -> PathBuf {
-    let file_name = dst
-        .file_name()
-        .and_then(|n| n.to_str())
-        .unwrap_or("fileflow-file");
-
-    dst.with_file_name(format!("{file_name}.fileflow.tmp"))
 }
