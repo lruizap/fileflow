@@ -6,6 +6,8 @@ use std::time::SystemTime;
 use fileflow_core::{Action, Context, FileFlowError, Progress, Result};
 use walkdir::WalkDir;
 
+const LARGE_FILE_THRESHOLD_BYTES: u64 = 10 * 1024 * 1024 * 1024; // 10 GB
+
 #[derive(Debug, Clone)]
 pub struct SyncConfig {
     pub src: PathBuf,
@@ -56,7 +58,6 @@ impl Action for SyncAction {
         ctx.set_progress(Progress::new(0, total_steps).with_message("Iniciando sync"));
 
         let mut processed = 0u64;
-
         let dst_map = build_relative_map(dst, &dst_files)?;
         let mut src_rel_paths = HashSet::new();
 
@@ -68,20 +69,16 @@ impl Action for SyncAction {
 
             let dst_file = dst.join(&rel);
 
-            if let Some(parent) = dst_file.parent() {
-                fs::create_dir_all(parent)?;
-            }
-
             if let Some(existing_dst) = dst_map.get(&rel) {
                 if self.cfg.overwrite || should_copy(src_file, existing_dst)? {
                     ctx.info(format!("SyncAction: updating {}", rel.display()));
-                    fs::copy(src_file, &dst_file)?;
+                    copy_file_optimized(src_file, &dst_file, ctx)?;
                 } else {
                     ctx.info(format!("SyncAction: skipping {}", rel.display()));
                 }
             } else {
                 ctx.info(format!("SyncAction: copying {}", rel.display()));
-                fs::copy(src_file, &dst_file)?;
+                copy_file_optimized(src_file, &dst_file, ctx)?;
             }
 
             processed += 1;
@@ -137,7 +134,7 @@ fn read_files(dir: &Path, recursive: bool) -> Result<Vec<PathBuf>> {
     let mut files = Vec::new();
 
     if recursive {
-        for entry in WalkDir::new(dir) {
+        for entry in WalkDir::new(dir).follow_links(false) {
             let entry = entry.map_err(|e| FileFlowError::Message(e.to_string()))?;
             let path = entry.path();
 
@@ -199,4 +196,64 @@ fn should_copy(src: &Path, dst: &Path) -> Result<bool> {
 
 fn modified_or_epoch(meta: &fs::Metadata) -> SystemTime {
     meta.modified().unwrap_or(SystemTime::UNIX_EPOCH)
+}
+
+fn copy_file_optimized(src: &Path, dst: &Path, ctx: &mut Context) -> Result<()> {
+    if let Some(parent) = dst.parent() {
+        fs::create_dir_all(parent)?;
+    }
+
+    let size = fs::metadata(src)?.len();
+
+    if size >= LARGE_FILE_THRESHOLD_BYTES {
+        ctx.info(format!(
+            "SyncAction: large file detected ({} GB). Using fast direct copy.",
+            size / 1024 / 1024 / 1024
+        ));
+
+        copy_file_fast(src, dst)
+    } else {
+        ctx.info("SyncAction: using safe copy strategy");
+        copy_file_safely(src, dst)
+    }
+}
+
+fn copy_file_fast(src: &Path, dst: &Path) -> Result<()> {
+    fs::copy(src, dst)?;
+    Ok(())
+}
+
+fn copy_file_safely(src: &Path, dst: &Path) -> Result<()> {
+    let tmp = temp_path_for(dst);
+
+    if tmp.exists() {
+        fs::remove_file(&tmp)?;
+    }
+
+    fs::copy(src, &tmp)?;
+
+    if dst.exists() {
+        fs::remove_file(dst)?;
+    }
+
+    fs::rename(&tmp, dst).map_err(|e| {
+        let _ = fs::remove_file(&tmp);
+        FileFlowError::Message(format!(
+            "Could not replace '{}' after copying '{}': {}",
+            dst.display(),
+            src.display(),
+            e
+        ))
+    })?;
+
+    Ok(())
+}
+
+fn temp_path_for(dst: &Path) -> PathBuf {
+    let file_name = dst
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("fileflow-file");
+
+    dst.with_file_name(format!("{file_name}.fileflow.tmp"))
 }

@@ -26,9 +26,8 @@ fn format_logs(logs: Vec<LogEntry>) -> Vec<String> {
         .collect()
 }
 
-#[tauri::command]
-fn run_echo() -> Result<GuiRunResult, String> {
-    let action = actions::build_action("echo", &[]).map_err(|e| e.to_string())?;
+fn run_action(action_name: &str, args: Vec<String>) -> Result<GuiRunResult, String> {
+    let action = actions::build_action(action_name, &args).map_err(|e| e.to_string())?;
     let engine = Engine::new();
     let out = engine.run_action(action.as_ref());
 
@@ -39,118 +38,124 @@ fn run_echo() -> Result<GuiRunResult, String> {
 }
 
 #[tauri::command]
-fn run_copy(src: String, dst: String, overwrite: bool) -> Result<GuiRunResult, String> {
-    let mut args = vec![
-        "--src".to_string(),
-        src,
-        "--dst".to_string(),
-        dst,
-    ];
-
-    if overwrite {
-        args.push("--overwrite".to_string());
-    }
-
-    let action = actions::build_action("copy", &args).map_err(|e| e.to_string())?;
-    let engine = Engine::new();
-    let out = engine.run_action(action.as_ref());
-
-    Ok(GuiRunResult {
-        status: format_status(out.job.status),
-        logs: format_logs(out.logs),
-    })
+async fn run_echo() -> Result<GuiRunResult, String> {
+    tauri::async_runtime::spawn_blocking(move || run_action("echo", vec![]))
+        .await
+        .map_err(|e| format!("Error ejecutando echo: {e}"))?
 }
 
 #[tauri::command]
-fn run_move(src: String, dst: String, overwrite: bool) -> Result<GuiRunResult, String> {
-    let mut args = vec![
-        "--src".to_string(),
-        src,
-        "--dst".to_string(),
-        dst,
-    ];
+async fn run_copy(src: String, dst: String, overwrite: bool) -> Result<GuiRunResult, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let mut args = vec![
+            "--src".to_string(),
+            src,
+            "--dst".to_string(),
+            dst,
+        ];
 
-    if overwrite {
-        args.push("--overwrite".to_string());
-    }
+        if overwrite {
+            args.push("--overwrite".to_string());
+        }
 
-    let action = actions::build_action("move", &args).map_err(|e| e.to_string())?;
-    let engine = Engine::new();
-    let out = engine.run_action(action.as_ref());
-
-    Ok(GuiRunResult {
-        status: format_status(out.job.status),
-        logs: format_logs(out.logs),
+        run_action("copy", args)
     })
+    .await
+    .map_err(|e| format!("Error ejecutando copy: {e}"))?
 }
 
 #[tauri::command]
-fn run_sync(
+async fn run_move(src: String, dst: String, overwrite: bool) -> Result<GuiRunResult, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let mut args = vec![
+            "--src".to_string(),
+            src,
+            "--dst".to_string(),
+            dst,
+        ];
+
+        if overwrite {
+            args.push("--overwrite".to_string());
+        }
+
+        run_action("move", args)
+    })
+    .await
+    .map_err(|e| format!("Error ejecutando move: {e}"))?
+}
+
+#[tauri::command]
+async fn run_sync(
     src: String,
     dst: String,
     recursive: bool,
     delete_extra: bool,
     overwrite: bool,
 ) -> Result<GuiRunResult, String> {
-    let mut args = vec![
-        "--src".to_string(),
-        src,
-        "--dst".to_string(),
-        dst,
-    ];
+    tauri::async_runtime::spawn_blocking(move || {
+        let mut args = vec![
+            "--src".to_string(),
+            src,
+            "--dst".to_string(),
+            dst,
+        ];
 
-    if recursive {
-        args.push("--recursive".to_string());
-    }
+        if recursive {
+            args.push("--recursive".to_string());
+        }
 
-    if delete_extra {
-        args.push("--delete-extra".to_string());
-    }
+        if delete_extra {
+            args.push("--delete-extra".to_string());
+        }
 
-    if overwrite {
-        args.push("--overwrite".to_string());
-    }
+        if overwrite {
+            args.push("--overwrite".to_string());
+        }
 
-    let action = actions::build_action("sync", &args).map_err(|e| e.to_string())?;
-    let engine = Engine::new();
-    let out = engine.run_action(action.as_ref());
-
-    Ok(GuiRunResult {
-        status: format_status(out.job.status),
-        logs: format_logs(out.logs),
+        run_action("sync", args)
     })
+    .await
+    .map_err(|e| format!("Error ejecutando sync: {e}"))?
 }
 
 #[tauri::command]
-fn validate_config(path: String) -> Result<GuiRunResult, String> {
-    let config = actions::load_pipeline_config(&path).map_err(|e| e.to_string())?;
+async fn validate_config(path: String) -> Result<GuiRunResult, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let config = actions::load_pipeline_config(&path).map_err(|e| e.to_string())?;
 
-    let mut logs = vec![
-        "Config OK".to_string(),
-        format!("Nombre: {}", config.name),
-        format!("Steps: {}", config.steps.len()),
-    ];
+        let mut logs = vec![
+            "Config OK".to_string(),
+            format!("Nombre: {}", config.name),
+            format!("Steps: {}", config.steps.len()),
+        ];
 
-    for (index, step) in config.steps.iter().enumerate() {
-        logs.push(format!("{}. {}", index + 1, step.action));
-    }
+        for (index, step) in config.steps.iter().enumerate() {
+            logs.push(format!("{}. {}", index + 1, step.action));
+        }
 
-    Ok(GuiRunResult {
-        status: "SUCCESS".to_string(),
-        logs,
+        Ok(GuiRunResult {
+            status: "SUCCESS".to_string(),
+            logs,
+        })
     })
+    .await
+    .map_err(|e| format!("Error validando config: {e}"))?
 }
 
 #[tauri::command]
-fn run_config(path: String) -> Result<GuiRunResult, String> {
-    let action = actions::build_pipeline_from_config_file(&path).map_err(|e| e.to_string())?;
-    let engine = Engine::new();
-    let out = engine.run_action(action.as_ref());
+async fn run_config(path: String) -> Result<GuiRunResult, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let action = actions::build_pipeline_from_config_file(&path).map_err(|e| e.to_string())?;
+        let engine = Engine::new();
+        let out = engine.run_action(action.as_ref());
 
-    Ok(GuiRunResult {
-        status: format_status(out.job.status),
-        logs: format_logs(out.logs),
+        Ok(GuiRunResult {
+            status: format_status(out.job.status),
+            logs: format_logs(out.logs),
+        })
     })
+    .await
+    .map_err(|e| format!("Error ejecutando config: {e}"))?
 }
 
 fn main() {
