@@ -1,3 +1,22 @@
+@media (max-width: 1050px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+  }
+
+  .sidebar-nav {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .app-main {
+    padding: 24px;
+  }
+}
+
 @media (max-width: 900px) {
   .app {
     padding: 24px;
@@ -17,20 +36,50 @@
   }
 
   .grid,
-  .help-list {
+  .help-list,
+  .about-grid {
     grid-template-columns: 1fr;
   }
 
+  .github-card,
   .logs-card {
     grid-column: span 1;
   }
 
-  .path-row {
+  .github-card-content,
+  .guide-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .github-card-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .github-card-content .github-link {
+    width: 100%;
+  }
+
+  .github-popup {
+    grid-template-columns: 1fr;
+  }
+
+  .guide-wide {
+    grid-column: span 1;
+  }
+
+  .path-row,
+  .github-popup {
     grid-template-columns: 1fr;
   }
 
   .floating-help-btn {
     right: 18px;
     bottom: 18px;
+  }
+
+  .sidebar-nav {
+    grid-template-columns: 1fr;
   }
 }

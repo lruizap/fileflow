@@ -1,0 +1,132 @@
+.page-section {
+  display: grid;
+  gap: 22px;
+}
+
+.page-title {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 4px;
+}
+
+.page-title>span {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: rgba(96, 165, 250, 0.14);
+  border: 1px solid rgba(147, 197, 253, 0.18);
+  font-size: 24px;
+}
+
+.page-title p {
+  margin: 8px 0 0;
+  color: #aeb8d7;
+  line-height: 1.6;
+}
+
+.single-column {
+  max-width: 900px;
+  display: grid;
+  gap: 20px;
+}
+
+.info-card p,
+.github-card p {
+  margin-top: 10px;
+  line-height: 1.7;
+}
+
+.info-card pre {
+  overflow: auto;
+  margin: 18px 0 0;
+  padding: 16px;
+  border-radius: 18px;
+  color: #bbf7d0;
+  background: #020617;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.github-card {
+  grid-column: span 2;
+}
+
+.github-card-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 48px;
+}
+
+.github-card-text {
+  min-width: 0;
+  max-width: 900px;
+}
+
+.github-card-text h2 {
+  margin-bottom: 10px;
+}
+
+.github-card-text p {
+  margin: 0;
+  color: #aeb8d7;
+  line-height: 1.7;
+}
+
+.github-popup {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 24px;
+  align-items: center;
+  padding: 18px;
+  border-radius: 22px;
+  margin: 22px 0;
+  background: rgba(96, 165, 250, 0.1);
+  border: 1px solid rgba(147, 197, 253, 0.18);
+}
+
+.github-popup strong,
+.github-popup span {
+  display: block;
+}
+
+.github-popup strong {
+  color: #eff6ff;
+  margin-bottom: 6px;
+}
+
+.github-popup span {
+  color: #aeb8d7;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.guide-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.guide-wide {
+  grid-column: span 2;
+}
+
+.guide-list {
+  display: grid;
+  gap: 10px;
+  padding-left: 20px;
+  color: #b6c3dd;
+  line-height: 1.7;
+}
+
+.guide-list strong {
+  color: #eff6ff;
+}

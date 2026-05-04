@@ -125,16 +125,12 @@ fn run_action_with_gui_progress(
     );
 
     let listener = Arc::new(move |progress: Progress| {
-        let payload =
-            build_progress_payload(&label_for_progress, &progress, started_at, false);
+        let payload = build_progress_payload(&label_for_progress, &progress, started_at, false);
         emit_progress(&app_for_progress, payload);
     });
 
-    let out = engine.run_action_with_progress_and_cancel(
-        action.as_ref(),
-        listener,
-        cancel_flag.clone(),
-    );
+    let out =
+        engine.run_action_with_progress_and_cancel(action.as_ref(), listener, cancel_flag.clone());
 
     let final_progress = out
         .job
@@ -352,11 +348,8 @@ async fn run_config(
             emit_progress(&app_for_progress, payload);
         });
 
-        let out = engine.run_action_with_progress_and_cancel(
-            action.as_ref(),
-            listener,
-            cancel_flag.clone(),
-        );
+        let out =
+            engine.run_action_with_progress_and_cancel(action.as_ref(), listener, cancel_flag.clone());
 
         let final_progress = out
             .job
@@ -383,6 +376,7 @@ async fn run_config(
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
         .manage(CancelState {
             flag: Arc::new(AtomicBool::new(false)),
         })

@@ -1,252 +1,87 @@
-import { useEffect, useState } from "react";
-import { listen } from "@tauri-apps/api/event";
-import { invoke } from "@tauri-apps/api/core";
+import { useState } from "react";
 import "./App.css";
 
-import { invokeFileFlow } from "./api/fileflow";
+import { useActionFormState } from "./app/useActionFormState";
+import { useFileFlowRunner } from "./app/useFileFlowRunner";
+import { AppShell } from "./app/AppShell";
+import type { PageId } from "./app/navigation";
+
 import { FloatingHelpButton } from "./components/FloatingHelpButton";
 import { FloatingProgress } from "./components/FloatingProgress";
-import { Header } from "./components/Header";
 import { HelpModal } from "./components/HelpModal";
-import { HistoryPanel } from "./components/HistoryPanel";
-import { LogsPanel } from "./components/LogsPanel";
 import { Toast } from "./components/Toast";
-import { CopyCard } from "./features/CopyCard";
-import { EchoCard } from "./features/EchoCard";
-import { MoveCard } from "./features/MoveCard";
-import { PipelineCard } from "./features/PipelineCard";
-import { SyncCard } from "./features/SyncCard";
 
-import type {
-  HistoryItem,
-  ProgressPayload,
-  RunCommand,
-  ToastState,
-} from "./types";
+import { ActionsPage } from "./pages/ActionsPage";
+import { ActivityPage } from "./pages/ActivityPage";
+import { AboutPage } from "./pages/AboutPage";
+import { GuidePage } from "./pages/GuidePage";
+import { PipelinesPage } from "./pages/PipelinesPage";
 
 function App() {
+  const [activePage, setActivePage] = useState<PageId>("actions");
   const [showIntro, setShowIntro] = useState(true);
 
-  const [copySrc, setCopySrc] = useState("");
-  const [copyDst, setCopyDst] = useState("");
-
-  const [moveSrc, setMoveSrc] = useState("");
-  const [moveDst, setMoveDst] = useState("");
-
-  const [syncSrc, setSyncSrc] = useState("");
-  const [syncDst, setSyncDst] = useState("");
-
-  const [configPath, setConfigPath] = useState("");
-
-  const [recursive, setRecursive] = useState(true);
-  const [deleteExtra, setDeleteExtra] = useState(false);
-  const [overwrite, setOverwrite] = useState(false);
-
-  const [status, setStatus] = useState("READY");
-  const [logs, setLogs] = useState<string[]>([
-    "FileFlow GUI inicializada.",
-    "Selecciona una acción para comenzar.",
-  ]);
-
-  const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [toast, setToast] = useState<ToastState>(null);
-  const [loading, setLoading] = useState(false);
-
-  const [progress, setProgress] = useState<ProgressPayload | null>(null);
-  const [showProgress, setShowProgress] = useState(false);
-  const [cancelling, setCancelling] = useState(false);
-
-  // Escuchar progreso desde Rust
-  useEffect(() => {
-    const unlistenPromise = listen<ProgressPayload>(
-      "fileflow-progress",
-      (event) => {
-        setProgress(event.payload);
-      },
-    );
-
-    return () => {
-      unlistenPromise.then((unlisten) => unlisten());
-    };
-  }, []);
-
-  // Mostrar barra solo si tarda >10s
-  useEffect(() => {
-    if (!loading) {
-      setShowProgress(false);
-      return;
-    }
-
-    const timer = window.setTimeout(() => {
-      setShowProgress(true);
-    }, 10_000);
-
-    return () => window.clearTimeout(timer);
-  }, [loading]);
-
-  function pushHistory(label: string, command: string, status: string) {
-    const item: HistoryItem = {
-      id: crypto.randomUUID(),
-      label,
-      command,
-      status,
-      createdAt: new Date().toLocaleTimeString(),
-    };
-
-    setHistory((prev) => [item, ...prev].slice(0, 20));
-  }
-
-  function showToast(toast: ToastState) {
-    setToast(toast);
-    window.setTimeout(() => setToast(null), 4500);
-  }
-
-  const runCommand: RunCommand = async (command, args, label = command) => {
-    setLoading(true);
-    setShowProgress(false);
-    setProgress(null);
-    setCancelling(false);
-
-    setStatus("RUNNING");
-    setLogs((prev) => [`Ejecutando: ${label}`, ...prev]);
-
-    try {
-      const result = await invokeFileFlow(command, args);
-
-      setStatus(result.status);
-      setLogs(result.logs);
-
-      pushHistory(label, command, result.status);
-
-      if (result.status.includes("SUCCESS")) {
-        showToast({
-          type: "success",
-          message: `${label} completado correctamente.`,
-        });
-      } else if (result.status.includes("CANCELLED")) {
-        showToast({
-          type: "info",
-          message: `Operación cancelada.`,
-        });
-      } else {
-        showToast({
-          type: "error",
-          message: `${label} terminó con errores.`,
-        });
-      }
-    } catch (err) {
-      const errorMessage =
-        typeof err === "string" ? err : JSON.stringify(err, null, 2);
-
-      setStatus("ERROR");
-      setLogs(["Error ejecutando comando:", errorMessage]);
-
-      pushHistory(label, command, "ERROR");
-
-      showToast({
-        type: "error",
-        message: `No se pudo ejecutar ${label}.`,
-      });
-    } finally {
-      setLoading(false);
-      setCancelling(false);
-
-      window.setTimeout(() => setProgress(null), 1500);
-    }
-  };
+  const forms = useActionFormState();
+  const runner = useFileFlowRunner();
 
   return (
-    <main className="app">
+    <>
       {showIntro && <HelpModal onClose={() => setShowIntro(false)} />}
 
-      <Toast toast={toast} onClose={() => setToast(null)} />
+      <Toast toast={runner.toast} onClose={() => runner.setToast(null)} />
 
       <FloatingProgress
-        progress={progress}
-        visible={showProgress && loading}
-        cancelling={cancelling}
-        onCancel={async () => {
-          setCancelling(true);
-
-          try {
-            await invoke("cancel_current_job");
-
-            showToast({
-              type: "info",
-              message: "Cancelando operación...",
-            });
-          } catch (err) {
-            showToast({
-              type: "error",
-              message: `No se pudo cancelar: ${String(err)}`,
-            });
-          }
-        }}
+        progress={runner.progress}
+        visible={runner.showProgress && runner.loading}
+        cancelling={runner.cancelling}
+        onCancel={runner.cancelCurrentJob}
       />
 
-      <Header status={status} />
+      <AppShell
+        activePage={activePage}
+        status={runner.status}
+        onChangePage={setActivePage}
+        onOpenHelp={() => setShowIntro(true)}
+      >
+        {activePage === "actions" && (
+          <ActionsPage
+            loading={runner.loading}
+            history={runner.history}
+            forms={forms}
+            runCommand={runner.runCommand}
+            onClearHistory={() => runner.setHistory([])}
+          />
+        )}
 
-      <section className="grid">
-        <div className="stack-card">
-          <EchoCard loading={loading} runCommand={runCommand} />
+        {activePage === "pipelines" && (
+          <PipelinesPage
+            loading={runner.loading}
+            configPath={forms.configPath}
+            setConfigPath={forms.setConfigPath}
+            runCommand={runner.runCommand}
+          />
+        )}
 
-          <HistoryPanel history={history} onClear={() => setHistory([])} />
-        </div>
+        {activePage === "activity" && (
+          <ActivityPage
+            logs={runner.logs}
+            history={runner.history}
+            onClearLogs={() =>
+              runner.setLogs([
+                "Logs limpiados. Ejecuta una acción para ver resultados.",
+              ])
+            }
+            onClearHistory={() => runner.setHistory([])}
+          />
+        )}
 
-        <CopyCard
-          loading={loading}
-          src={copySrc}
-          dst={copyDst}
-          overwrite={overwrite}
-          setSrc={setCopySrc}
-          setDst={setCopyDst}
-          setOverwrite={setOverwrite}
-          runCommand={runCommand}
-        />
+        {activePage === "guide" && <GuidePage />}
 
-        <MoveCard
-          loading={loading}
-          src={moveSrc}
-          dst={moveDst}
-          overwrite={overwrite}
-          setSrc={setMoveSrc}
-          setDst={setMoveDst}
-          setOverwrite={setOverwrite}
-          runCommand={runCommand}
-        />
-
-        <SyncCard
-          loading={loading}
-          src={syncSrc}
-          dst={syncDst}
-          recursive={recursive}
-          deleteExtra={deleteExtra}
-          overwrite={overwrite}
-          setSrc={setSyncSrc}
-          setDst={setSyncDst}
-          setRecursive={setRecursive}
-          setDeleteExtra={setDeleteExtra}
-          setOverwrite={setOverwrite}
-          runCommand={runCommand}
-        />
-
-        <PipelineCard
-          loading={loading}
-          configPath={configPath}
-          setConfigPath={setConfigPath}
-          runCommand={runCommand}
-        />
-
-        <LogsPanel
-          logs={logs}
-          onClear={() =>
-            setLogs(["Logs limpiados. Ejecuta una acción para ver resultados."])
-          }
-        />
-      </section>
+        {activePage === "about" && <AboutPage />}
+      </AppShell>
 
       <FloatingHelpButton onClick={() => setShowIntro(true)} />
-    </main>
+    </>
   );
 }
 

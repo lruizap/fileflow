@@ -1,0 +1,162 @@
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 300px 1fr;
+}
+
+.app-main {
+  min-width: 0;
+  padding: 40px;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  background: rgba(15, 23, 42, 0.74);
+  border-right: 1px solid rgba(148, 163, 184, 0.16);
+  backdrop-filter: blur(18px);
+}
+
+.sidebar-brand {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.sidebar-brand img {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  box-shadow: 0 14px 35px rgba(245, 158, 11, 0.28);
+}
+
+.sidebar-brand strong,
+.sidebar-brand span {
+  display: block;
+}
+
+.sidebar-brand strong {
+  color: #eff6ff;
+  font-size: 18px;
+}
+
+.sidebar-brand span {
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.sidebar-nav {
+  display: grid;
+  gap: 10px;
+}
+
+.nav-item {
+  width: 100%;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  text-align: left;
+  padding: 14px;
+  color: #cbd5e1;
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+.nav-item.active,
+.nav-item:hover {
+  background: rgba(96, 165, 250, 0.14);
+  border-color: rgba(147, 197, 253, 0.24);
+}
+
+.nav-item span {
+  font-size: 20px;
+}
+
+.nav-item strong,
+.nav-item small {
+  display: block;
+}
+
+.nav-item small {
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  display: grid;
+  gap: 12px;
+}
+
+.sidebar-github-box {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(96, 165, 250, 0.08);
+  border: 1px solid rgba(147, 197, 253, 0.2);
+}
+
+.sidebar-github-box strong {
+  color: #eff6ff;
+  font-size: 15px;
+}
+
+.sidebar-github-box span {
+  color: #aeb8d7;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.github-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: fit-content;
+  min-width: 150px;
+  padding: 12px 20px;
+  border-radius: 14px;
+  color: #001018;
+  background: linear-gradient(135deg, #60a5fa, #22c55e);
+  border: none;
+  cursor: pointer;
+  font-weight: 900;
+  font-size: 14px;
+  text-decoration: none;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.github-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 36px rgba(52, 211, 153, 0.25);
+}
+
+.github-link:active {
+  transform: translateY(0);
+  opacity: 0.9;
+}
+
+.github-link span {
+  color: #001018;
+}
+
+.github-link strong {
+  color: #001018;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.github-link.compact {
+  width: 100%;
+  min-width: unset;
+}

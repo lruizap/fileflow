@@ -1,3 +1,5 @@
+import { GitHubLink } from "./GitHubLink";
+
 type Props = {
   onClose: () => void;
 };
@@ -21,86 +23,42 @@ export function HelpModal({ onClose }: Props) {
           repetitivas sin depender de la nube.
         </p>
 
+        <div className="github-popup">
+          <div>
+            <strong>Repositorio oficial</strong>
+            <span>
+              Revisa actualizaciones, releases y documentación del proyecto.
+            </span>
+          </div>
+          <GitHubLink compact />
+        </div>
+
         <div className="help-section">
           <h3>Funciones principales</h3>
 
           <div className="help-list">
             <div>
-              <strong>Comprobar funcionamiento</strong>
+              <strong>Acciones rápidas</strong>
+              <span>Copy, move, sync y prueba rápida del motor.</span>
+            </div>
+
+            <div>
+              <strong>Pipelines JSON</strong>
               <span>
-                Ejecuta una prueba rápida para verificar que el motor interno de
-                FileFlow responde correctamente.
+                Automatizaciones reutilizables guardadas en archivos JSON.
               </span>
             </div>
 
             <div>
-              <strong>Copiar archivo</strong>
-              <span>
-                Duplica un archivo en otra ubicación. El archivo original se
-                conserva.
-              </span>
+              <strong>Actividad</strong>
+              <span>Historial, logs, progreso y cancelación de procesos.</span>
             </div>
 
             <div>
-              <strong>Mover archivo</strong>
-              <span>
-                Traslada un archivo a otra ubicación. El original desaparece de
-                la carpeta inicial.
-              </span>
-            </div>
-
-            <div>
-              <strong>Sincronizar carpetas</strong>
-              <span>
-                Actualiza una carpeta destino con el contenido de una carpeta
-                origen. Puede incluir subcarpetas, sobrescribir y borrar extras.
-              </span>
-            </div>
-
-            <div>
-              <strong>Automatización JSON</strong>
-              <span>
-                Permite ejecutar una secuencia de acciones guardadas en un
-                archivo JSON reutilizable.
-              </span>
-            </div>
-
-            <div>
-              <strong>Historial y logs</strong>
-              <span>
-                El historial muestra qué acciones has ejecutado. Los logs
-                muestran el detalle técnico de cada operación.
-              </span>
-            </div>
-
-            <div>
-              <strong>Alertas visuales</strong>
-              <span>
-                Después de cada ejecución verás una notificación indicando si la
-                acción terminó correctamente o si hubo un error.
-              </span>
-            </div>
-
-            <div>
-              <strong>Limpiar logs</strong>
-              <span>
-                Permite limpiar el panel de registro para revisar mejor la
-                siguiente ejecución.
-              </span>
+              <strong>GitHub oficial</strong>
+              <span>Acceso rápido para descargar o actualizar versiones.</span>
             </div>
           </div>
-        </div>
-
-        <div className="help-section">
-          <h3>Cómo usarlo</h3>
-
-          <ol className="help-steps">
-            <li>Elige la acción que quieres ejecutar.</li>
-            <li>Selecciona archivos o carpetas con los botones.</li>
-            <li>Marca opciones como incluir subcarpetas o sobrescribir.</li>
-            <li>Pulsa el botón principal de la acción.</li>
-            <li>Revisa la alerta, el historial y los logs.</li>
-          </ol>
         </div>
 
         <button className="primary-btn" onClick={onClose}>
