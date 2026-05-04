@@ -1,9 +1,10 @@
 import type { ProgressPayload } from "../types";
-import type { ReactNode } from "react";
 
 type Props = {
   progress: ProgressPayload | null;
   visible: boolean;
+  onCancel: () => void;
+  cancelling: boolean;
 };
 
 function formatSeconds(seconds: number | null) {
@@ -29,7 +30,12 @@ function formatBytes(bytes: number) {
   return `${bytes} B`;
 }
 
-export function FloatingProgress({ progress, visible }: Props) {
+export function FloatingProgress({
+  progress,
+  visible,
+  onCancel,
+  cancelling,
+}: Props) {
   if (!visible || !progress) return null;
 
   const percent = Math.max(0, Math.min(100, progress.percent));
@@ -58,6 +64,15 @@ export function FloatingProgress({ progress, visible }: Props) {
         <span>Transcurrido: {formatSeconds(progress.elapsedSeconds)}</span>
         <span>Restante: {formatSeconds(progress.etaSeconds)}</span>
       </div>
+
+      <button
+        className="cancel-progress-btn"
+        type="button"
+        onClick={onCancel}
+        disabled={cancelling}
+      >
+        {cancelling ? "Cancelando..." : "Cancelar operación"}
+      </button>
     </aside>
   );
 }

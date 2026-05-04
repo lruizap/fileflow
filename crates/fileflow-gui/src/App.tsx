@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
+import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
 
 import { invokeFileFlow } from "./api/fileflow";
@@ -15,6 +16,7 @@ import { EchoCard } from "./features/EchoCard";
 import { MoveCard } from "./features/MoveCard";
 import { PipelineCard } from "./features/PipelineCard";
 import { SyncCard } from "./features/SyncCard";
+
 import type {
   HistoryItem,
   ProgressPayload,
@@ -52,7 +54,9 @@ function App() {
 
   const [progress, setProgress] = useState<ProgressPayload | null>(null);
   const [showProgress, setShowProgress] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
+  // Escuchar progreso desde Rust
   useEffect(() => {
     const unlistenPromise = listen<ProgressPayload>(
       "fileflow-progress",
@@ -66,6 +70,7 @@ function App() {
     };
   }, []);
 
+  // Mostrar barra solo si tarda >10s
   useEffect(() => {
     if (!loading) {
       setShowProgress(false);
@@ -100,19 +105,28 @@ function App() {
     setLoading(true);
     setShowProgress(false);
     setProgress(null);
+    setCancelling(false);
+
     setStatus("RUNNING");
     setLogs((prev) => [`Ejecutando: ${label}`, ...prev]);
 
     try {
       const result = await invokeFileFlow(command, args);
+
       setStatus(result.status);
       setLogs(result.logs);
+
       pushHistory(label, command, result.status);
 
       if (result.status.includes("SUCCESS")) {
         showToast({
           type: "success",
           message: `${label} completado correctamente.`,
+        });
+      } else if (result.status.includes("CANCELLED")) {
+        showToast({
+          type: "info",
+          message: `Operación cancelada.`,
         });
       } else {
         showToast({
@@ -126,6 +140,7 @@ function App() {
 
       setStatus("ERROR");
       setLogs(["Error ejecutando comando:", errorMessage]);
+
       pushHistory(label, command, "ERROR");
 
       showToast({
@@ -134,6 +149,8 @@ function App() {
       });
     } finally {
       setLoading(false);
+      setCancelling(false);
+
       window.setTimeout(() => setProgress(null), 1500);
     }
   };
@@ -144,7 +161,28 @@ function App() {
 
       <Toast toast={toast} onClose={() => setToast(null)} />
 
-      <FloatingProgress progress={progress} visible={showProgress && loading} />
+      <FloatingProgress
+        progress={progress}
+        visible={showProgress && loading}
+        cancelling={cancelling}
+        onCancel={async () => {
+          setCancelling(true);
+
+          try {
+            await invoke("cancel_current_job");
+
+            showToast({
+              type: "info",
+              message: "Cancelando operación...",
+            });
+          } catch (err) {
+            showToast({
+              type: "error",
+              message: `No se pudo cancelar: ${String(err)}`,
+            });
+          }
+        }}
+      />
 
       <Header status={status} />
 

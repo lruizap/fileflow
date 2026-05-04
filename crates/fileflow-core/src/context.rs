@@ -38,6 +38,18 @@ impl Context {
         }
     }
 
+    pub fn with_progress_listener_and_cancel(
+        listener: ProgressListener,
+        cancel_flag: Arc<AtomicBool>,
+    ) -> Self {
+        Self {
+            logs: Vec::new(),
+            progress: None,
+            cancel_flag,
+            progress_listener: Some(listener),
+        }
+    }
+
     pub fn log(&mut self, level: LogLevel, msg: impl Into<String>) {
         self.logs.push(LogEntry::new(level, msg));
     }

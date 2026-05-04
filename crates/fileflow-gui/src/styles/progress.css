@@ -75,6 +75,18 @@
   color: #94a3b8;
 }
 
+.cancel-progress-btn {
+  width: 100%;
+  margin-top: 14px;
+  color: #fecdd3;
+  background: rgba(251, 113, 133, 0.12);
+  border: 1px solid rgba(251, 113, 133, 0.32);
+}
+
+.cancel-progress-btn:hover:not(:disabled) {
+  box-shadow: 0 16px 40px rgba(251, 113, 133, 0.16);
+}
+
 @media (max-width: 900px) {
   .floating-progress {
     right: 18px;

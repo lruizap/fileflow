@@ -1,12 +1,20 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::sync::Arc;
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc,
+};
 use std::time::Instant;
 
 use fileflow_actions as actions;
 use fileflow_core::{Engine, JobStatus, LogEntry, Progress};
 use serde::Serialize;
-use tauri::{AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, State};
+
+#[derive(Clone)]
+struct CancelState {
+    flag: Arc<AtomicBool>,
+}
 
 #[derive(Debug, Serialize)]
 struct GuiRunResult {
@@ -56,7 +64,6 @@ fn build_progress_payload(
     let total = progress.total.max(1);
     let current = progress.current.min(total);
     let percent = (current as f64 / total as f64) * 100.0;
-
     let elapsed_seconds = started_at.elapsed().as_secs();
 
     let eta_seconds = if current > 0 && !done {
@@ -89,10 +96,13 @@ fn build_progress_payload(
 
 fn run_action_with_gui_progress(
     app: AppHandle,
+    cancel_flag: Arc<AtomicBool>,
     action_name: &str,
     action_label: &str,
     args: Vec<String>,
 ) -> Result<GuiRunResult, String> {
+    cancel_flag.store(false, Ordering::SeqCst);
+
     let action = actions::build_action(action_name, &args).map_err(|e| e.to_string())?;
     let engine = Engine::new();
 
@@ -120,7 +130,11 @@ fn run_action_with_gui_progress(
         emit_progress(&app_for_progress, payload);
     });
 
-    let out = engine.run_action_with_progress(action.as_ref(), listener);
+    let out = engine.run_action_with_progress_and_cancel(
+        action.as_ref(),
+        listener,
+        cancel_flag.clone(),
+    );
 
     let final_progress = out
         .job
@@ -133,6 +147,8 @@ fn run_action_with_gui_progress(
         build_progress_payload(action_label, &final_progress, started_at, true),
     );
 
+    cancel_flag.store(false, Ordering::SeqCst);
+
     Ok(GuiRunResult {
         status: format_status(out.job.status),
         logs: format_logs(out.logs),
@@ -140,9 +156,17 @@ fn run_action_with_gui_progress(
 }
 
 #[tauri::command]
-async fn run_echo(app: AppHandle) -> Result<GuiRunResult, String> {
+fn cancel_current_job(state: State<CancelState>) -> Result<(), String> {
+    state.flag.store(true, Ordering::SeqCst);
+    Ok(())
+}
+
+#[tauri::command]
+async fn run_echo(app: AppHandle, state: State<'_, CancelState>) -> Result<GuiRunResult, String> {
+    let cancel_flag = state.flag.clone();
+
     tauri::async_runtime::spawn_blocking(move || {
-        run_action_with_gui_progress(app, "echo", "Prueba rápida", vec![])
+        run_action_with_gui_progress(app, cancel_flag, "echo", "Prueba rápida", vec![])
     })
     .await
     .map_err(|e| format!("Error ejecutando echo: {e}"))?
@@ -151,10 +175,13 @@ async fn run_echo(app: AppHandle) -> Result<GuiRunResult, String> {
 #[tauri::command]
 async fn run_copy(
     app: AppHandle,
+    state: State<'_, CancelState>,
     src: String,
     dst: String,
     overwrite: bool,
 ) -> Result<GuiRunResult, String> {
+    let cancel_flag = state.flag.clone();
+
     tauri::async_runtime::spawn_blocking(move || {
         let mut args = vec!["--src".to_string(), src, "--dst".to_string(), dst];
 
@@ -162,7 +189,7 @@ async fn run_copy(
             args.push("--overwrite".to_string());
         }
 
-        run_action_with_gui_progress(app, "copy", "Copiando archivo", args)
+        run_action_with_gui_progress(app, cancel_flag, "copy", "Copiando archivo", args)
     })
     .await
     .map_err(|e| format!("Error ejecutando copy: {e}"))?
@@ -171,10 +198,13 @@ async fn run_copy(
 #[tauri::command]
 async fn run_move(
     app: AppHandle,
+    state: State<'_, CancelState>,
     src: String,
     dst: String,
     overwrite: bool,
 ) -> Result<GuiRunResult, String> {
+    let cancel_flag = state.flag.clone();
+
     tauri::async_runtime::spawn_blocking(move || {
         let mut args = vec!["--src".to_string(), src, "--dst".to_string(), dst];
 
@@ -182,7 +212,7 @@ async fn run_move(
             args.push("--overwrite".to_string());
         }
 
-        run_action_with_gui_progress(app, "move", "Moviendo archivo", args)
+        run_action_with_gui_progress(app, cancel_flag, "move", "Moviendo archivo", args)
     })
     .await
     .map_err(|e| format!("Error ejecutando move: {e}"))?
@@ -191,12 +221,15 @@ async fn run_move(
 #[tauri::command]
 async fn run_sync(
     app: AppHandle,
+    state: State<'_, CancelState>,
     src: String,
     dst: String,
     recursive: bool,
     delete_extra: bool,
     overwrite: bool,
 ) -> Result<GuiRunResult, String> {
+    let cancel_flag = state.flag.clone();
+
     tauri::async_runtime::spawn_blocking(move || {
         let mut args = vec!["--src".to_string(), src, "--dst".to_string(), dst];
 
@@ -212,15 +245,23 @@ async fn run_sync(
             args.push("--overwrite".to_string());
         }
 
-        run_action_with_gui_progress(app, "sync", "Sincronizando carpetas", args)
+        run_action_with_gui_progress(app, cancel_flag, "sync", "Sincronizando carpetas", args)
     })
     .await
     .map_err(|e| format!("Error ejecutando sync: {e}"))?
 }
 
 #[tauri::command]
-async fn validate_config(app: AppHandle, path: String) -> Result<GuiRunResult, String> {
+async fn validate_config(
+    app: AppHandle,
+    state: State<'_, CancelState>,
+    path: String,
+) -> Result<GuiRunResult, String> {
+    let cancel_flag = state.flag.clone();
+
     tauri::async_runtime::spawn_blocking(move || {
+        cancel_flag.store(false, Ordering::SeqCst);
+
         emit_progress(
             &app,
             GuiProgressPayload {
@@ -236,6 +277,11 @@ async fn validate_config(app: AppHandle, path: String) -> Result<GuiRunResult, S
         );
 
         let started_at = Instant::now();
+
+        if cancel_flag.load(Ordering::SeqCst) {
+            return Err("Operación cancelada".to_string());
+        }
+
         let config = actions::load_pipeline_config(&path).map_err(|e| e.to_string())?;
 
         let mut logs = vec![
@@ -258,6 +304,8 @@ async fn validate_config(app: AppHandle, path: String) -> Result<GuiRunResult, S
             ),
         );
 
+        cancel_flag.store(false, Ordering::SeqCst);
+
         Ok(GuiRunResult {
             status: "SUCCESS".to_string(),
             logs,
@@ -268,8 +316,16 @@ async fn validate_config(app: AppHandle, path: String) -> Result<GuiRunResult, S
 }
 
 #[tauri::command]
-async fn run_config(app: AppHandle, path: String) -> Result<GuiRunResult, String> {
+async fn run_config(
+    app: AppHandle,
+    state: State<'_, CancelState>,
+    path: String,
+) -> Result<GuiRunResult, String> {
+    let cancel_flag = state.flag.clone();
+
     tauri::async_runtime::spawn_blocking(move || {
+        cancel_flag.store(false, Ordering::SeqCst);
+
         let action = actions::build_pipeline_from_config_file(&path).map_err(|e| e.to_string())?;
         let engine = Engine::new();
 
@@ -296,7 +352,11 @@ async fn run_config(app: AppHandle, path: String) -> Result<GuiRunResult, String
             emit_progress(&app_for_progress, payload);
         });
 
-        let out = engine.run_action_with_progress(action.as_ref(), listener);
+        let out = engine.run_action_with_progress_and_cancel(
+            action.as_ref(),
+            listener,
+            cancel_flag.clone(),
+        );
 
         let final_progress = out
             .job
@@ -308,6 +368,8 @@ async fn run_config(app: AppHandle, path: String) -> Result<GuiRunResult, String
             &app,
             build_progress_payload("Ejecutando automatización", &final_progress, started_at, true),
         );
+
+        cancel_flag.store(false, Ordering::SeqCst);
 
         Ok(GuiRunResult {
             status: format_status(out.job.status),
@@ -321,13 +383,17 @@ async fn run_config(app: AppHandle, path: String) -> Result<GuiRunResult, String
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .manage(CancelState {
+            flag: Arc::new(AtomicBool::new(false)),
+        })
         .invoke_handler(tauri::generate_handler![
             run_echo,
             run_copy,
             run_move,
             run_sync,
             validate_config,
-            run_config
+            run_config,
+            cancel_current_job
         ])
         .run(tauri::generate_context!())
         .expect("error while running FileFlow GUI");
