@@ -111,3 +111,32 @@ select {
     grid-template-columns: 1fr;
   }
 }
+
+.pipeline-examples-modal {
+  position: relative;
+  width: min(920px, calc(100vw - 40px));
+  max-height: 88vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 6px;
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(147, 197, 253, 0.4) transparent;
+}
+
+.pipeline-examples-modal::-webkit-scrollbar {
+  width: 10px;
+}
+
+.pipeline-examples-modal::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pipeline-examples-modal::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(147, 197, 253, 0.35);
+}
+
+.pipeline-examples-modal::-webkit-scrollbar-thumb:hover {
+  background: rgba(147, 197, 253, 0.55);
+}
