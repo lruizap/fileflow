@@ -1,14 +1,25 @@
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
+pub mod commands;
+pub mod progress;
+pub mod state;
 
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
+use state::CancelState;
+
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet])
+        .manage(CancelState::default())
+        .invoke_handler(tauri::generate_handler![
+            commands::actions::run_echo,
+            commands::actions::run_copy,
+            commands::actions::run_move,
+            commands::actions::run_sync,
+            commands::actions::validate_config,
+            commands::actions::run_config,
+            commands::cancel::cancel_current_job,
+            commands::pipeline_files::save_pipeline_json,
+            commands::pipeline_files::read_pipeline_json
+        ])
         .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .expect("error while running FileFlow GUI");
 }
