@@ -130,3 +130,47 @@
 .guide-list strong {
   color: #eff6ff;
 }
+
+.guide-examples-btn {
+  width: fit-content;
+  margin-top: 18px;
+}
+
+.pipeline-examples-modal {
+  width: min(980px, 100%);
+}
+
+.pipeline-example-list {
+  display: grid;
+  gap: 18px;
+  margin: 24px 0;
+}
+
+.pipeline-example-list article {
+  padding: 18px;
+  border-radius: 22px;
+  background: rgba(2, 6, 23, 0.38);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.pipeline-example-list h3 {
+  margin: 0 0 8px;
+  color: #eff6ff;
+}
+
+.pipeline-example-list p {
+  margin: 0 0 14px;
+  color: #aeb8d7;
+  line-height: 1.6;
+}
+
+.pipeline-example-list pre {
+  margin: 0;
+  max-height: 320px;
+  overflow: auto;
+  padding: 16px;
+  border-radius: 18px;
+  color: #bbf7d0;
+  background: #020617;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+}

@@ -41,7 +41,6 @@ function App() {
         activePage={activePage}
         status={runner.status}
         onChangePage={setActivePage}
-        onOpenHelp={() => setShowIntro(true)}
       >
         {activePage === "actions" && (
           <ActionsPage

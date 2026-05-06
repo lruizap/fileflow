@@ -1,4 +1,8 @@
+import { useState } from "react";
+
 export function GuidePage() {
+  const [showPipelineExamples, setShowPipelineExamples] = useState(false);
+
   return (
     <section className="page-section">
       <div className="page-title">
@@ -85,7 +89,7 @@ export function GuidePage() {
           <h2>4. Actividad, logs y progreso</h2>
           <p>
             FileFlow muestra el historial de acciones, logs técnicos y una barra
-            flotante de progreso cuando una operación tarda más de 10 segundos.
+            flotante de progreso cuando una operación tarda más de 30 segundos.
           </p>
 
           <ul className="guide-list">
@@ -97,7 +101,32 @@ export function GuidePage() {
         </article>
 
         <article className="card info-card guide-wide">
-          <h2>5. Flujo recomendado</h2>
+          <h2>5. Crear pipelines desde la interfaz</h2>
+          <p>
+            En la pantalla de Pipelines puedes crear automatizaciones sin
+            escribir JSON a mano. Solo tienes que añadir pasos, elegir archivos
+            o carpetas, guardar el JSON y ejecutarlo cuando quieras.
+          </p>
+
+          <ol className="help-steps">
+            <li>Entra en la pantalla Pipelines.</li>
+            <li>Pulsa añadir copiar, mover, sync o prueba.</li>
+            <li>Configura cada paso con sus archivos o carpetas.</li>
+            <li>Guarda el pipeline como archivo JSON.</li>
+            <li>Ejecuta la automatización desde la propia app.</li>
+          </ol>
+
+          <button
+            className="secondary-btn guide-examples-btn"
+            type="button"
+            onClick={() => setShowPipelineExamples(true)}
+          >
+            Ver ejemplos de pipelines
+          </button>
+        </article>
+
+        <article className="card info-card guide-wide">
+          <h2>6. Flujo recomendado</h2>
           <ol className="help-steps">
             <li>Entra en Acciones.</li>
             <li>Selecciona archivo o carpeta con los botones.</li>
@@ -111,6 +140,97 @@ export function GuidePage() {
           </ol>
         </article>
       </section>
+
+      {showPipelineExamples && (
+        <div className="modal-backdrop">
+          <section className="modal pipeline-examples-modal">
+            <button
+              className="modal-close"
+              type="button"
+              onClick={() => setShowPipelineExamples(false)}
+            >
+              ×
+            </button>
+
+            <div className="modal-icon">🔗</div>
+
+            <h2>Ejemplos de pipelines</h2>
+            <p>
+              Estos ejemplos muestran cómo FileFlow puede encadenar acciones
+              para automatizar tareas repetitivas.
+            </p>
+
+            <div className="pipeline-example-list">
+              <article>
+                <h3>Ejemplo 1: Backup de documentos</h3>
+                <p>
+                  Sincroniza una carpeta de documentos con una carpeta de
+                  backup, incluyendo subcarpetas.
+                </p>
+
+                <pre>{`{
+  "name": "backup_documentos",
+  "steps": [
+    {
+      "action": "sync",
+      "args": [
+        "--src",
+        "C:/Users/Lucas/Documents",
+        "--dst",
+        "D:/Backups/Documents",
+        "--recursive",
+        "--overwrite"
+      ]
+    }
+  ]
+}`}</pre>
+              </article>
+
+              <article>
+                <h3>Ejemplo 2: Ordenar archivo procesado</h3>
+                <p>
+                  Copia un archivo importante a una carpeta de backup y después
+                  mueve el original a una carpeta de procesados.
+                </p>
+
+                <pre>{`{
+  "name": "procesar_archivo",
+  "steps": [
+    {
+      "action": "copy",
+      "args": [
+        "--src",
+        "C:/Trabajo/informe.pdf",
+        "--dst",
+        "D:/Backup/informe.pdf",
+        "--overwrite"
+      ]
+    },
+    {
+      "action": "move",
+      "args": [
+        "--src",
+        "C:/Trabajo/informe.pdf",
+        "--dst",
+        "C:/Trabajo/procesados/informe.pdf",
+        "--overwrite"
+      ]
+    }
+  ]
+}`}</pre>
+              </article>
+            </div>
+
+            <button
+              className="primary-btn"
+              type="button"
+              onClick={() => setShowPipelineExamples(false)}
+            >
+              Entendido
+            </button>
+          </section>
+        </div>
+      )}
     </section>
   );
 }

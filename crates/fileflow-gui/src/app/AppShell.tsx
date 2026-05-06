@@ -8,7 +8,6 @@ type Props = {
   status: string;
   children: ReactNode;
   onChangePage: (page: PageId) => void;
-  onOpenHelp: () => void;
 };
 
 export function AppShell({
@@ -16,15 +15,10 @@ export function AppShell({
   status,
   children,
   onChangePage,
-  onOpenHelp,
 }: Props) {
   return (
     <div className="app-shell">
-      <Sidebar
-        activePage={activePage}
-        onChangePage={onChangePage}
-        onOpenHelp={onOpenHelp}
-      />
+      <Sidebar activePage={activePage} onChangePage={onChangePage} />
 
       <main className="app-main">
         <Header status={status} />
