@@ -89,7 +89,15 @@ pub fn copy_file_optimized(
             size / 1024 / 1024 / 1024
         ));
 
-        copy_file_chunked(src, dst, ctx, progress_offset, total_progress, label)?;
+        match copy_file_chunked(src, dst, ctx, progress_offset, total_progress, label) {
+            Ok(_) => Ok(size),
+            Err(e) => {
+                if matches!(e, FileFlowError::Cancelled) {
+                    let _ = fs::remove_file(dst);
+                }
+                Err(e)
+            }
+        }
     } else {
         ctx.info("FileFlow: usando copia segura con archivo temporal");
 
@@ -99,24 +107,30 @@ pub fn copy_file_optimized(
             fs::remove_file(&tmp)?;
         }
 
-        copy_file_chunked(src, &tmp, ctx, progress_offset, total_progress, label)?;
+        match copy_file_chunked(src, &tmp, ctx, progress_offset, total_progress, label) {
+            Ok(_) => {
+                if dst.exists() {
+                    fs::remove_file(dst)?;
+                }
 
-        if dst.exists() {
-            fs::remove_file(dst)?;
+                fs::rename(&tmp, dst).map_err(|e| {
+                    let _ = fs::remove_file(&tmp);
+                    FileFlowError::Message(format!(
+                        "Could not replace '{}' after copying '{}': {}",
+                        dst.display(),
+                        src.display(),
+                        e
+                    ))
+                })?;
+
+                Ok(size)
+            }
+            Err(e) => {
+                let _ = fs::remove_file(&tmp);
+                Err(e)
+            }
         }
-
-        fs::rename(&tmp, dst).map_err(|e| {
-            let _ = fs::remove_file(&tmp);
-            FileFlowError::Message(format!(
-                "Could not replace '{}' after copying '{}': {}",
-                dst.display(),
-                src.display(),
-                e
-            ))
-        })?;
     }
-
-    Ok(size)
 }
 
 fn copy_file_chunked(
