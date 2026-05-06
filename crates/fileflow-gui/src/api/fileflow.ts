@@ -9,6 +9,14 @@ export async function invokeFileFlow(
   return await invoke<GuiRunResult>(command, args ?? {});
 }
 
+export async function savePipelineJson(path: string, content: string) {
+  await invoke("save_pipeline_json", { path, content });
+}
+
+export async function readPipelineJson(path: string): Promise<string> {
+  return await invoke<string>("read_pipeline_json", { path });
+}
+
 export async function pickFile(): Promise<string | null> {
   const selected = await open({
     multiple: false,
@@ -48,6 +56,19 @@ export async function pickDestinationFile(): Promise<string | null> {
       {
         name: "Todos los archivos",
         extensions: ["*"],
+      },
+    ],
+  });
+
+  return typeof selected === "string" ? selected : null;
+}
+
+export async function pickSaveJsonFile(): Promise<string | null> {
+  const selected = await save({
+    filters: [
+      {
+        name: "Pipeline JSON",
+        extensions: ["json"],
       },
     ],
   });

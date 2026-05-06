@@ -1,3 +1,4 @@
+import { PipelineBuilder } from "../components/PipelineBuilder";
 import { PipelineCard } from "../features/PipelineCard";
 import type { RunCommand } from "../types";
 
@@ -21,37 +22,25 @@ export function PipelinesPage({
         <div>
           <h2>Pipelines JSON</h2>
           <p>
-            Ejecuta automatizaciones reutilizables guardadas en archivos JSON.
+            Ejecuta automatizaciones existentes o crea una nueva desde el editor
+            visual.
           </p>
         </div>
       </div>
 
-      <div className="single-column">
+      <div className="single-column wide-column">
+        <PipelineBuilder
+          loading={loading}
+          runCommand={runCommand}
+          setConfigPath={setConfigPath}
+        />
+
         <PipelineCard
           loading={loading}
           configPath={configPath}
           setConfigPath={setConfigPath}
           runCommand={runCommand}
         />
-
-        <article className="card info-card">
-          <h2>¿Para qué sirve un pipeline?</h2>
-          <p>
-            Un pipeline permite encadenar varias acciones. Por ejemplo:
-            sincronizar una carpeta, mover un archivo procesado y guardar una
-            copia de seguridad.
-          </p>
-
-          <pre>{`{
-  "name": "sync_demo",
-  "steps": [
-    {
-      "action": "sync",
-      "args": ["--src", "./docs", "--dst", "./backup", "--recursive"]
-    }
-  ]
-}`}</pre>
-        </article>
       </div>
     </section>
   );

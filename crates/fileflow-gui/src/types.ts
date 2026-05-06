@@ -32,3 +32,25 @@ export type ProgressPayload = {
   etaSeconds: number | null;
   done: boolean;
 };
+
+export type PipelineActionType = "copy" | "move" | "sync" | "echo";
+
+export type PipelineStepDraft = {
+  id: string;
+  action: PipelineActionType;
+  src: string;
+  dst: string;
+  recursive: boolean;
+  deleteExtra: boolean;
+  overwrite: boolean;
+};
+
+export type PipelineConfigStep = {
+  action: string;
+  args: string[];
+};
+
+export type PipelineConfig = {
+  name: string;
+  steps: PipelineConfigStep[];
+};
