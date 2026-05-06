@@ -1,4 +1,4 @@
-import { PipelineBuilder } from "../components/PipelineBuilder";
+import { PipelineBuilder } from "../features/pipeline-builder/PipelineBuilder";
 import { PipelineCard } from "../features/PipelineCard";
 import type { RunCommand } from "../types";
 
