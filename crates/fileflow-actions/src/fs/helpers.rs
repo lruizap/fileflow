@@ -1,6 +1,7 @@
 use std::fs::{self, File};
 use std::io::{BufReader, BufWriter, Read, Write};
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use fileflow_core::{Context, FileFlowError, Progress, Result};
 
@@ -19,6 +20,20 @@ pub fn validate_source_file(src: &Path) -> Result<()> {
     if !src.is_file() {
         return Err(FileFlowError::Message(format!(
             "Source is not a file: {}",
+            src.display()
+        )));
+    }
+
+    Ok(())
+}
+
+pub fn ensure_distinct_paths(src: &Path, dst: &Path, operation: &str) -> Result<()> {
+    let src_path = fs::canonicalize(src)?;
+    let dst_path = comparable_destination_path(dst)?;
+
+    if paths_equal(&src_path, &dst_path) {
+        return Err(FileFlowError::Message(format!(
+            "Cannot {operation} a file onto itself: {}",
             src.display()
         )));
     }
@@ -73,62 +88,50 @@ pub fn copy_file_optimized(
     }
 
     let size = fs::metadata(src)?.len();
+    let tmp = temp_path_for(dst);
 
-    if size == 0 {
-        File::create(dst)?;
-        ctx.set_progress(
-            Progress::new(progress_offset, total_progress.max(1))
-                .with_message(format!("{} (archivo vacío)", label)),
-        );
-        return Ok(0);
+    if tmp.exists() {
+        fs::remove_file(&tmp)?;
     }
 
     if size >= LARGE_FILE_THRESHOLD_BYTES {
         ctx.info(format!(
-            "FileFlow: archivo grande detectado ({} GB). Usando copia directa optimizada.",
+            "FileFlow: archivo grande detectado ({} GB). Usando copia segura con temporal.",
             size / 1024 / 1024 / 1024
         ));
-
-        match copy_file_chunked(src, dst, ctx, progress_offset, total_progress, label) {
-            Ok(_) => Ok(size),
-            Err(e) => {
-                if matches!(e, FileFlowError::Cancelled) {
-                    let _ = fs::remove_file(dst);
-                }
-                Err(e)
-            }
-        }
     } else {
         ctx.info("FileFlow: usando copia segura con archivo temporal");
+    }
 
-        let tmp = temp_path_for(dst);
-
-        if tmp.exists() {
-            fs::remove_file(&tmp)?;
-        }
-
-        match copy_file_chunked(src, &tmp, ctx, progress_offset, total_progress, label) {
-            Ok(_) => {
-                if dst.exists() {
+    match copy_file_chunked(src, &tmp, ctx, progress_offset, total_progress, label) {
+        Ok(_) => {
+            if dst.exists() {
+                if dst.is_file() {
                     fs::remove_file(dst)?;
-                }
-
-                fs::rename(&tmp, dst).map_err(|e| {
+                } else {
                     let _ = fs::remove_file(&tmp);
-                    FileFlowError::Message(format!(
-                        "Could not replace '{}' after copying '{}': {}",
-                        dst.display(),
-                        src.display(),
-                        e
-                    ))
-                })?;
+                    return Err(FileFlowError::Message(format!(
+                        "Destination exists and is not a file: {}",
+                        dst.display()
+                    )));
+                }
+            }
 
-                Ok(size)
-            }
-            Err(e) => {
+            fs::rename(&tmp, dst).map_err(|e| {
                 let _ = fs::remove_file(&tmp);
-                Err(e)
-            }
+                FileFlowError::Message(format!(
+                    "Could not replace '{}' after copying '{}': {}",
+                    dst.display(),
+                    src.display(),
+                    e
+                ))
+            })?;
+
+            Ok(size)
+        }
+        Err(e) => {
+            let _ = fs::remove_file(&tmp);
+            Err(e)
         }
     }
 }
@@ -195,5 +198,84 @@ fn temp_path_for(dst: &Path) -> PathBuf {
         .and_then(|n| n.to_str())
         .unwrap_or("fileflow-file");
 
-    dst.with_file_name(format!("{file_name}.fileflow.tmp"))
+    let pid = std::process::id();
+    let nanos = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_nanos())
+        .unwrap_or(0);
+
+    dst.with_file_name(format!("{file_name}.fileflow.{pid}.{nanos}.tmp"))
+}
+
+fn comparable_destination_path(dst: &Path) -> Result<PathBuf> {
+    if dst.exists() {
+        return Ok(fs::canonicalize(dst)?);
+    }
+
+    normalize_path(dst)
+}
+
+pub fn normalize_path(path: &Path) -> Result<PathBuf> {
+    let joined = if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        std::env::current_dir()?.join(path)
+    };
+
+    let mut normalized = PathBuf::new();
+
+    for component in joined.components() {
+        match component {
+            Component::Prefix(prefix) => normalized.push(prefix.as_os_str()),
+            Component::RootDir => normalized.push(component.as_os_str()),
+            Component::CurDir => {}
+            Component::ParentDir => {
+                normalized.pop();
+            }
+            Component::Normal(part) => normalized.push(part),
+        }
+    }
+
+    Ok(normalized)
+}
+
+pub fn paths_equal(left: &Path, right: &Path) -> bool {
+    #[cfg(windows)]
+    {
+        comparable_path_string(left) == comparable_path_string(right)
+    }
+
+    #[cfg(not(windows))]
+    {
+        left == right
+    }
+}
+
+pub fn path_is_within(child: &Path, parent: &Path) -> bool {
+    if paths_equal(child, parent) {
+        return true;
+    }
+
+    #[cfg(windows)]
+    {
+        let child = comparable_path_string(child);
+        let parent = comparable_path_string(parent);
+        child.starts_with(&format!("{parent}\\"))
+    }
+
+    #[cfg(not(windows))]
+    {
+        child.starts_with(parent)
+    }
+}
+
+#[cfg(windows)]
+fn comparable_path_string(path: &Path) -> String {
+    let mut path = path.to_string_lossy().replace('/', "\\");
+
+    if let Some(stripped) = path.strip_prefix("\\\\?\\") {
+        path = stripped.to_string();
+    }
+
+    path.trim_end_matches('\\').to_ascii_lowercase()
 }

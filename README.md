@@ -14,6 +14,7 @@ El repositorio incluye una CLI funcional, una GUI de escritorio con Tauri/React 
 - Acciones modulares registradas mediante factories.
 - Pipelines JSON para encadenar varias acciones.
 - Sincronizacion de carpetas con modo recursivo.
+- Previsualizacion de sincronizaciones con `--dry-run`.
 - Watcher de carpetas mediante `notify`.
 - Build portable para Windows en `release/v0.2.5`.
 
@@ -121,6 +122,14 @@ Sincronizar eliminando archivos extra del destino:
 cargo run -p fileflow-cli -- run sync -- --src ./origen --dst ./destino --delete-extra
 ```
 
+Previsualizar una sincronizacion sin escribir ni borrar nada:
+
+```bash
+cargo run -p fileflow-cli -- run sync -- --src ./origen --dst ./destino --recursive --delete-extra --dry-run
+```
+
+Por seguridad, `sync` rechaza rutas peligrosas como origen y destino iguales, destino dentro del origen, u origen dentro del destino.
+
 ## Pipelines JSON
 
 Los pipelines permiten guardar automatizaciones reutilizables en archivos JSON.
@@ -211,6 +220,8 @@ La interfaz incluye:
 
 - Acciones rapidas para `echo`, `copy`, `move` y `sync`.
 - Selector de archivos y carpetas.
+- Previsualizacion de sincronizaciones antes de escribir cambios.
+- Confirmacion antes de borrar archivos extra del destino.
 - Ejecucion y validacion de pipelines JSON.
 - Panel de actividad e historial.
 - Progreso flotante.

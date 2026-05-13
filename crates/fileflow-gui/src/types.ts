@@ -43,6 +43,7 @@ export type PipelineStepDraft = {
   recursive: boolean;
   deleteExtra: boolean;
   overwrite: boolean;
+  dryRun: boolean;
 };
 
 export type PipelineConfigStep = {

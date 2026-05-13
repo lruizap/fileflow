@@ -26,13 +26,30 @@ export function useFileFlowRunner() {
   const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
-    const unlistenPromise = listen<ProgressPayload>(
-      "fileflow-progress",
-      (event) => setProgress(event.payload),
-    );
+    if (!("__TAURI_INTERNALS__" in window)) {
+      return;
+    }
+
+    let active = true;
+    let unlistenProgress: (() => void) | null = null;
+
+    listen<ProgressPayload>("fileflow-progress", (event) =>
+      setProgress(event.payload),
+    )
+      .then((unlisten) => {
+        if (active) {
+          unlistenProgress = unlisten;
+        } else {
+          unlisten();
+        }
+      })
+      .catch((err) => {
+        console.warn("No se pudo escuchar el progreso de FileFlow.", err);
+      });
 
     return () => {
-      unlistenPromise.then((unlisten) => unlisten());
+      active = false;
+      unlistenProgress?.();
     };
   }, []);
 
@@ -42,7 +59,7 @@ export function useFileFlowRunner() {
       return;
     }
 
-    const timer = window.setTimeout(() => setShowProgress(true), 10_000);
+    const timer = window.setTimeout(() => setShowProgress(true), 1_000);
     return () => window.clearTimeout(timer);
   }, [loading]);
 
