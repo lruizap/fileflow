@@ -4,9 +4,7 @@ use std::path::PathBuf;
 use fileflow_core::{Action, Context, Progress, Result};
 
 use crate::fs::helpers::{
-    copy_file_optimized,
-    prepare_destination,
-    validate_source_file,
+    copy_file_optimized, ensure_distinct_paths, prepare_destination, validate_source_file,
 };
 
 #[derive(Debug, Clone)]
@@ -37,9 +35,14 @@ impl Action for CopyAction {
         let src = &self.cfg.src;
         let dst = &self.cfg.dst;
 
-        ctx.info(format!("CopyAction: {} -> {}", src.display(), dst.display()));
+        ctx.info(format!(
+            "CopyAction: {} -> {}",
+            src.display(),
+            dst.display()
+        ));
 
         validate_source_file(src)?;
+        ensure_distinct_paths(src, dst, "copy")?;
         prepare_destination(dst, self.cfg.overwrite)?;
 
         let total = fs::metadata(src)?.len().max(1);

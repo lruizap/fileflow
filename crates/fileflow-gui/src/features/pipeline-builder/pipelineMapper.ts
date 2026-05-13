@@ -22,6 +22,7 @@ export function createStep(
     recursive: action === "sync",
     deleteExtra: false,
     overwrite: false,
+    dryRun: false,
   };
 }
 
@@ -34,6 +35,7 @@ export function stepToConfig(step: PipelineStepDraft) {
 
   if (step.action === "sync" && step.recursive) args.push("--recursive");
   if (step.action === "sync" && step.deleteExtra) args.push("--delete-extra");
+  if (step.action === "sync" && step.dryRun) args.push("--dry-run");
   if (step.overwrite) args.push("--overwrite");
 
   return {
@@ -63,6 +65,7 @@ export function configStepToDraft(step: {
     recursive: step.args.includes("--recursive"),
     deleteExtra: step.args.includes("--delete-extra"),
     overwrite: step.args.includes("--overwrite"),
+    dryRun: step.args.includes("--dry-run"),
   };
 }
 

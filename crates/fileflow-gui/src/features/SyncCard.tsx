@@ -10,11 +10,13 @@ type Props = {
   recursive: boolean;
   deleteExtra: boolean;
   overwrite: boolean;
+  dryRun: boolean;
   setSrc: (value: string) => void;
   setDst: (value: string) => void;
   setRecursive: (value: boolean) => void;
   setDeleteExtra: (value: boolean) => void;
   setOverwrite: (value: boolean) => void;
+  setDryRun: (value: boolean) => void;
   runCommand: RunCommand;
 };
 
@@ -25,11 +27,13 @@ export function SyncCard({
   recursive,
   deleteExtra,
   overwrite,
+  dryRun,
   setSrc,
   setDst,
   setRecursive,
   setDeleteExtra,
   setOverwrite,
+  setDryRun,
   runCommand,
 }: Props) {
   async function selectSrc() {
@@ -40,6 +44,29 @@ export function SyncCard({
   async function selectDst() {
     const selected = await pickDirectory();
     if (selected) setDst(selected);
+  }
+
+  function runSync() {
+    if (deleteExtra && !dryRun) {
+      const confirmed = window.confirm(
+        "Esta sincronización puede borrar archivos que existan solo en la carpeta destino. Revisa las rutas antes de continuar.",
+      );
+
+      if (!confirmed) return;
+    }
+
+    runCommand(
+      "run_sync",
+      {
+        src,
+        dst,
+        recursive,
+        deleteExtra,
+        overwrite,
+        dryRun,
+      },
+      dryRun ? "Previsualizar sincronización" : "Sincronizar carpetas",
+    );
   }
 
   return (
@@ -91,26 +118,23 @@ export function SyncCard({
           />
           Sobrescribir archivos
         </label>
+
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={dryRun}
+            onChange={(e) => setDryRun(e.target.checked)}
+          />
+          Solo previsualizar cambios
+        </label>
       </div>
 
       <button
         className="primary-btn"
         disabled={loading || !src || !dst}
-        onClick={() =>
-          runCommand(
-            "run_sync",
-            {
-              src,
-              dst,
-              recursive,
-              deleteExtra,
-              overwrite,
-            },
-            "Sincronizar carpetas",
-          )
-        }
+        onClick={runSync}
       >
-        Sincronizar carpetas
+        {dryRun ? "Previsualizar sincronización" : "Sincronizar carpetas"}
       </button>
     </ActionCard>
   );

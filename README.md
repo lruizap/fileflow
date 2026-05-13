@@ -14,6 +14,7 @@ El repositorio incluye una CLI funcional, una GUI de escritorio con Tauri/React 
 - Acciones modulares registradas mediante factories.
 - Pipelines JSON para encadenar varias acciones.
 - Sincronizacion de carpetas con modo recursivo.
+- Previsualizacion de sincronizaciones con `--dry-run`.
 - Watcher de carpetas mediante `notify`.
 - Build portable para Windows en `release/v0.2.5`.
 
@@ -38,8 +39,7 @@ fileflow/
 │   ├── fileflow-cli         # CLI basada en clap
 │   └── fileflow-gui         # GUI Tauri + React
 ├── pipelines/               # Ejemplos de automatizaciones JSON
-├── release/                 # Builds publicados
-└── tests/                   # Tests y pruebas de comportamiento
+└── release/                 # Builds publicados
 ```
 
 Flujo interno simplificado:
@@ -121,6 +121,14 @@ Sincronizar eliminando archivos extra del destino:
 ```bash
 cargo run -p fileflow-cli -- run sync -- --src ./origen --dst ./destino --delete-extra
 ```
+
+Previsualizar una sincronizacion sin escribir ni borrar nada:
+
+```bash
+cargo run -p fileflow-cli -- run sync -- --src ./origen --dst ./destino --recursive --delete-extra --dry-run
+```
+
+Por seguridad, `sync` rechaza rutas peligrosas como origen y destino iguales, destino dentro del origen, u origen dentro del destino.
 
 ## Pipelines JSON
 
@@ -212,6 +220,8 @@ La interfaz incluye:
 
 - Acciones rapidas para `echo`, `copy`, `move` y `sync`.
 - Selector de archivos y carpetas.
+- Previsualizacion de sincronizaciones antes de escribir cambios.
+- Confirmacion antes de borrar archivos extra del destino.
 - Ejecucion y validacion de pipelines JSON.
 - Panel de actividad e historial.
 - Progreso flotante.
@@ -243,7 +253,7 @@ cd crates/fileflow-gui
 npm run build
 ```
 
-Nota: el workspace compila correctamente con `cargo test`. Algunos tests de integracion estan en la carpeta raiz `tests/`; si se quiere que Cargo los ejecute automaticamente, conviene moverlos a la crate correspondiente o crear una crate dedicada de tests.
+Los tests de integracion viven dentro de cada crate, por ejemplo `crates/fileflow-core/tests`, `crates/fileflow-actions/tests` y `crates/fileflow-cli/tests`, para que `cargo test` los descubra y ejecute desde el workspace.
 
 ## Errores comunes
 
@@ -271,7 +281,7 @@ Para `copy`, `move` o `sync`, usa `--overwrite` cuando quieras permitir sobrescr
 
 ## Roadmap
 
-- Mejorar la cobertura y ubicacion de tests de integracion.
+- Ampliar la cobertura de tests de integracion.
 - Ampliar el builder visual de pipelines.
 - Mejorar empaquetado y distribucion de releases.
 - Persistencia de historial/configuracion de la GUI.

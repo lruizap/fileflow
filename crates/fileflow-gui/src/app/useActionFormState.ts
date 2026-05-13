@@ -15,6 +15,7 @@ export function useActionFormState() {
   const [recursive, setRecursive] = useState(true);
   const [deleteExtra, setDeleteExtra] = useState(false);
   const [overwrite, setOverwrite] = useState(false);
+  const [dryRun, setDryRun] = useState(false);
 
   return {
     copySrc,
@@ -27,6 +28,7 @@ export function useActionFormState() {
     recursive,
     deleteExtra,
     overwrite,
+    dryRun,
 
     setCopySrc,
     setCopyDst,
@@ -38,5 +40,6 @@ export function useActionFormState() {
     setRecursive,
     setDeleteExtra,
     setOverwrite,
+    setDryRun,
   };
 }
