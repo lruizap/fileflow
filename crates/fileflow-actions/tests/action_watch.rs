@@ -14,22 +14,24 @@ fn watch_action_once_runs_pipeline_config() {
 
     fs::create_dir_all(&watch_dir).unwrap();
     fs::create_dir_all(&src).unwrap();
-
     fs::write(src.join("a.txt"), "watch sync").unwrap();
 
-    let json = format!(
-        r#"{{
-  "name": "watch_once_demo",
-  "steps": [
-    {{
-      "action": "sync",
-      "args": ["--src", "{}", "--dst", "{}", "--recursive"]
-    }}
-  ]
-}}"#,
-        src.to_string_lossy(),
-        dst.to_string_lossy()
-    );
+    let json = serde_json::json!({
+        "name": "watch_once_demo",
+        "steps": [
+            {
+                "action": "sync",
+                "args": [
+                    "--src",
+                    src.to_string_lossy(),
+                    "--dst",
+                    dst.to_string_lossy(),
+                    "--recursive"
+                ]
+            }
+        ]
+    })
+    .to_string();
 
     fs::write(&config, json).unwrap();
 

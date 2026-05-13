@@ -1,6 +1,18 @@
-use fileflow_core::{
-    Action, Context, Engine, FileFlowError, JobStatus, Progress, Result,
-};
+use fileflow_core::{Action, Context, Engine, FileFlowError, JobStatus, Progress, Result};
+
+struct EchoAction;
+
+impl Action for EchoAction {
+    fn name(&self) -> &'static str {
+        "echo"
+    }
+
+    fn execute(&self, ctx: &mut Context) -> Result<()> {
+        ctx.info("Hola desde EchoAction");
+        ctx.set_progress(Progress::new(1, 1).with_message("Done"));
+        Ok(())
+    }
+}
 
 struct OkAction;
 
@@ -41,9 +53,22 @@ impl Action for CancelAction {
     fn execute(&self, ctx: &mut Context) -> Result<()> {
         ctx.info("cancel: requesting cancel");
         ctx.cancel();
-        ctx.ensure_not_cancelled()?; // aquí debe fallar con Cancelled
+        ctx.ensure_not_cancelled()?;
         Ok(())
     }
+}
+
+#[test]
+fn engine_runs_action_and_returns_success() {
+    let engine = Engine::new();
+    let action = EchoAction;
+
+    let out = engine.run_action(&action);
+
+    assert_eq!(out.job.action_name, "echo");
+    assert!(matches!(out.job.status, JobStatus::Success));
+    assert!(!out.logs.is_empty());
+    assert!(out.job.progress.is_some());
 }
 
 #[test]
@@ -53,18 +78,14 @@ fn engine_runs_ok_action_success() {
 
     assert_eq!(out.job.action_name, "ok_action");
     assert!(matches!(out.job.status, JobStatus::Success));
-
-    // timestamps básicos
     assert!(out.job.started_at.is_some());
     assert!(out.job.finished_at.is_some());
 
-    // progreso final
-    let p = out.job.progress.expect("expected progress");
-    assert_eq!(p.current, 2);
-    assert_eq!(p.total, 2);
-    assert_eq!(p.message.as_deref(), Some("done"));
+    let progress = out.job.progress.expect("expected progress");
+    assert_eq!(progress.current, 2);
+    assert_eq!(progress.total, 2);
+    assert_eq!(progress.message.as_deref(), Some("done"));
 
-    // logs
     assert!(out.logs.iter().any(|l| l.message.contains("ok: start")));
     assert!(out.logs.iter().any(|l| l.message.contains("ok: end")));
 }
@@ -75,7 +96,7 @@ fn engine_runs_fail_action_failed_status_contains_message() {
     let out = engine.run_action(&FailAction);
 
     match out.job.status {
-        JobStatus::Failed(msg) => assert!(msg.contains("boom")),
+        JobStatus::Failed(message) => assert!(message.contains("boom")),
         other => panic!("expected Failed, got: {:?}", other),
     }
 
@@ -88,5 +109,8 @@ fn engine_runs_cancel_action_cancelled_status() {
     let out = engine.run_action(&CancelAction);
 
     assert!(matches!(out.job.status, JobStatus::Cancelled));
-    assert!(out.logs.iter().any(|l| l.message.contains("requesting cancel")));
+    assert!(out
+        .logs
+        .iter()
+        .any(|l| l.message.contains("requesting cancel")));
 }

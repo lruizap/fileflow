@@ -17,7 +17,10 @@ fn pipeline_with_two_echo_steps_runs_successfully() {
     let out = engine.run_action(action.as_ref());
 
     assert!(matches!(out.job.status, JobStatus::Success));
-    assert!(out.logs.iter().any(|l| l.message.contains("PipelineAction: iniciando")));
+    assert!(out
+        .logs
+        .iter()
+        .any(|l| l.message.contains("PipelineAction: iniciando")));
 }
 
 #[test]
@@ -54,6 +57,8 @@ fn pipeline_can_run_move_with_step_args() {
 fn pipeline_requires_at_least_one_step() {
     let args: Vec<String> = vec![];
 
-    let err = build_action("pipeline", &args).unwrap_err();
-    assert!(err.to_string().contains("at least one"));
+    match build_action("pipeline", &args) {
+        Ok(_) => panic!("expected pipeline build to fail without steps"),
+        Err(err) => assert!(err.to_string().contains("at least one")),
+    }
 }

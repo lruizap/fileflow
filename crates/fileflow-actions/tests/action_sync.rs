@@ -23,7 +23,10 @@ fn sync_action_recursive_copies_nested_files() {
     let out = engine.run_action(act.as_ref());
 
     assert!(matches!(out.job.status, fileflow_core::JobStatus::Success));
-    assert_eq!(std::fs::read_to_string(dst.join("root.txt")).unwrap(), "root");
+    assert_eq!(
+        std::fs::read_to_string(dst.join("root.txt")).unwrap(),
+        "root"
+    );
     assert_eq!(
         std::fs::read_to_string(dst.join("nested").join("a.txt")).unwrap(),
         "nested"

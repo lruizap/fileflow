@@ -1,7 +1,10 @@
+use std::fs;
+
+use predicates::prelude::*;
+
 #[test]
 fn cli_validate_config_json_success() {
     let dir = tempfile::tempdir().unwrap();
-
     let json_path = dir.path().join("pipeline.json");
 
     let json = r#"
@@ -20,7 +23,7 @@ fn cli_validate_config_json_success() {
 
     let json_s = json_path.to_string_lossy().to_string();
 
-    let mut cmd = Command::cargo_bin("fileflow-cli").expect("binary should build");
+    let mut cmd = assert_cmd::cargo::cargo_bin_cmd!("fileflow-cli");
     cmd.args(["validate-config", &json_s])
         .assert()
         .success()
@@ -31,7 +34,7 @@ fn cli_validate_config_json_success() {
 
 #[test]
 fn cli_actions_list_shows_echo_copy_move_sync_watch_and_pipeline() {
-    let mut cmd = Command::cargo_bin("fileflow-cli").expect("binary should build");
+    let mut cmd = assert_cmd::cargo::cargo_bin_cmd!("fileflow-cli");
     cmd.args(["actions", "list"])
         .assert()
         .success()
@@ -55,7 +58,7 @@ fn cli_run_sync_recursive_copies_nested_files() {
     let src_s = src.to_string_lossy().to_string();
     let dst_s = dst.to_string_lossy().to_string();
 
-    let mut cmd = Command::cargo_bin("fileflow-cli").expect("binary should build");
+    let mut cmd = assert_cmd::cargo::cargo_bin_cmd!("fileflow-cli");
     cmd.args([
         "run",
         "sync",
