@@ -7,6 +7,7 @@ type Props = {
   loading: boolean;
   configPath: string;
   setConfigPath: (value: string) => void;
+  onRememberPipeline: (path: string) => void;
   runCommand: RunCommand;
 };
 
@@ -14,11 +15,15 @@ export function PipelineCard({
   loading,
   configPath,
   setConfigPath,
+  onRememberPipeline,
   runCommand,
 }: Props) {
   async function selectJson() {
     const selected = await pickJsonFile();
-    if (selected) setConfigPath(selected);
+    if (selected) {
+      setConfigPath(selected);
+      onRememberPipeline(selected);
+    }
   }
 
   return (
@@ -39,13 +44,14 @@ export function PipelineCard({
         <button
           className="secondary-btn"
           disabled={loading || !configPath}
-          onClick={() =>
+          onClick={() => {
+            onRememberPipeline(configPath);
             runCommand(
               "validate_config",
               { path: configPath },
               "Validar automatización",
-            )
-          }
+            );
+          }}
         >
           Validar JSON
         </button>
@@ -53,13 +59,14 @@ export function PipelineCard({
         <button
           className="primary-btn"
           disabled={loading || !configPath}
-          onClick={() =>
+          onClick={() => {
+            onRememberPipeline(configPath);
             runCommand(
               "run_config",
               { path: configPath },
               "Ejecutar automatización",
-            )
-          }
+            );
+          }}
         >
           Ejecutar automatización
         </button>

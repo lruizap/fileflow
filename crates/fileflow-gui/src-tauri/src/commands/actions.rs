@@ -42,11 +42,8 @@ pub async fn run_copy(
     let cancel_flag = state.flag.clone();
 
     tauri::async_runtime::spawn_blocking(move || {
-        let mut args = vec!["--src".to_string(), src, "--dst".to_string(), dst];
-
-        if overwrite {
-            args.push("--overwrite".to_string());
-        }
+        let mut args = path_pair_args(src, dst);
+        push_flag(&mut args, overwrite, "--overwrite");
 
         run_action_with_gui_progress(app, cancel_flag, "copy", "Copiando archivo", args)
     })
@@ -65,11 +62,8 @@ pub async fn run_move(
     let cancel_flag = state.flag.clone();
 
     tauri::async_runtime::spawn_blocking(move || {
-        let mut args = vec!["--src".to_string(), src, "--dst".to_string(), dst];
-
-        if overwrite {
-            args.push("--overwrite".to_string());
-        }
+        let mut args = path_pair_args(src, dst);
+        push_flag(&mut args, overwrite, "--overwrite");
 
         run_action_with_gui_progress(app, cancel_flag, "move", "Moviendo archivo", args)
     })
@@ -91,19 +85,11 @@ pub async fn run_sync(
     let cancel_flag = state.flag.clone();
 
     tauri::async_runtime::spawn_blocking(move || {
-        let mut args = vec!["--src".to_string(), src, "--dst".to_string(), dst];
-
-        if recursive {
-            args.push("--recursive".to_string());
-        }
-
-        if delete_extra {
-            args.push("--delete-extra".to_string());
-        }
-
-        if overwrite {
-            args.push("--overwrite".to_string());
-        }
+        let mut args = path_pair_args(src, dst);
+        push_flag(&mut args, recursive, "--recursive");
+        push_flag(&mut args, delete_extra, "--delete-extra");
+        push_flag(&mut args, overwrite, "--overwrite");
+        push_flag(&mut args, dry_run, "--dry-run");
 
         if dry_run {
             args.push("--dry-run".to_string());
@@ -119,6 +105,34 @@ pub async fn run_sync(
     })
     .await
     .map_err(|e| format!("Error ejecutando sync: {e}"))?
+}
+
+#[tauri::command]
+pub async fn run_watch(
+    app: AppHandle,
+    state: State<'_, CancelState>,
+    path: String,
+    config: String,
+    recursive: bool,
+    debounce_ms: u64,
+) -> Result<GuiRunResult, String> {
+    let cancel_flag = state.flag.clone();
+
+    tauri::async_runtime::spawn_blocking(move || {
+        let mut args = vec![
+            "--path".to_string(),
+            path,
+            "--config".to_string(),
+            config,
+            "--debounce-ms".to_string(),
+            debounce_ms.to_string(),
+        ];
+        push_flag(&mut args, recursive, "--recursive");
+
+        run_action_with_gui_progress(app, cancel_flag, "watch", "Vigilando carpeta", args)
+    })
+    .await
+    .map_err(|e| format!("Error ejecutando watch: {e}"))?
 }
 
 #[tauri::command]
@@ -266,5 +280,15 @@ fn format_status(status: JobStatus) -> String {
         JobStatus::Cancelled => "CANCELLED".to_string(),
         JobStatus::Running => "RUNNING".to_string(),
         JobStatus::Pending => "PENDING".to_string(),
+    }
+}
+
+fn path_pair_args(src: String, dst: String) -> Vec<String> {
+    vec!["--src".to_string(), src, "--dst".to_string(), dst]
+}
+
+fn push_flag(args: &mut Vec<String>, enabled: bool, flag: &str) {
+    if enabled {
+        args.push(flag.to_string());
     }
 }

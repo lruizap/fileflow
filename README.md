@@ -1,22 +1,25 @@
 # FileFlow
 
-**FileFlow** es un automatizador local de tareas de archivos para Windows, construido principalmente en Rust.
+**FileFlow** es un automatizador local de tareas de archivos para Windows,
+construido principalmente en Rust.
 
-La idea del proyecto es sencilla: ofrecer un **"Zapier local para archivos"** que permita copiar, mover, sincronizar, vigilar carpetas y ejecutar automatizaciones reutilizables sin depender de servicios externos.
-
-El repositorio incluye una CLI funcional, una GUI de escritorio con Tauri/React y un motor modular compartido por ambas interfaces.
+La idea del proyecto es ofrecer un **Zapier local para archivos**: copiar,
+mover, sincronizar, vigilar carpetas y ejecutar automatizaciones reutilizables
+sin depender de servicios externos.
 
 ## Estado actual
 
 - CLI en Rust para ejecutar acciones desde terminal.
-- GUI de escritorio en Tauri + React.
+- GUI de escritorio con Tauri, React y TypeScript.
 - Motor central reutilizable con logs, progreso, estados y cancelacion.
 - Acciones modulares registradas mediante factories.
-- Pipelines JSON para encadenar varias acciones.
-- Sincronizacion de carpetas con modo recursivo.
-- Previsualizacion de sincronizaciones con `--dry-run`.
-- Watcher de carpetas mediante `notify`.
-- Build portable para Windows en `release/v0.2.5`.
+- Pipelines JSON para encadenar acciones.
+- Editor visual de pipelines.
+- Biblioteca de pipelines recientes/guardados.
+- Persistencia local de rutas, historial y preferencias de la GUI.
+- Sincronizacion recursiva con `--dry-run`, `--overwrite` y `--delete-extra`.
+- Watcher de carpetas mediante `notify`, disponible desde CLI y GUI.
+- Builds de Windows publicados directamente en `release/`.
 
 ## Acciones disponibles
 
@@ -34,45 +37,54 @@ El repositorio incluye una CLI funcional, una GUI de escritorio con Tauri/React 
 ```text
 fileflow/
 ├── crates/
-│   ├── fileflow-core        # Motor, Action trait, Context, logs, progreso y estados
+│   ├── fileflow-core        # Motor, Action trait, Context, logs y progreso
 │   ├── fileflow-actions     # Acciones, factories, registry y pipelines JSON
 │   ├── fileflow-cli         # CLI basada en clap
 │   └── fileflow-gui         # GUI Tauri + React
 ├── pipelines/               # Ejemplos de automatizaciones JSON
-└── release/                 # Builds publicados
+└── release/                 # Ejecutables e instaladores publicados
 ```
-
-Flujo interno simplificado:
 
 ```text
 CLI / GUI -> Registry -> ActionFactory -> Action -> Engine -> Context -> Logs / Progress / Result
 ```
 
-La GUI no reimplementa la logica de archivos: invoca comandos Tauri que usan el mismo motor Rust que la CLI.
+## Desarrollo
 
-## Requisitos
-
-Para desarrollo:
+Requisitos:
 
 - Rust: <https://rustup.rs>
 - Node.js y npm
 - Dependencias de Tauri 2 para Windows
 
-Para uso final en Windows, la idea es distribuir ejecutables portables desde `release/`.
-
-## Compilar el workspace Rust
+Compilar workspace Rust:
 
 ```bash
 cargo build --release
 ```
 
-El ejecutable CLI queda en:
+Ejecutar tests:
 
-```text
-target/release/fileflow-cli.exe
+```bash
+cargo test
 ```
 
-## Usar la CLI
+Ejecutar GUI en desarrollo:
+
+```bash
+cd crates/fileflow-gui
+npm install
+npm run tauri dev
+```
+
+Compilar frontend:
+
+```bash
+cd crates/fileflow-gui
+npm run build
+```
+
+## Uso CLI
 
 Listar acciones:
 
@@ -80,19 +92,7 @@ Listar acciones:
 cargo run -p fileflow-cli -- actions list
 ```
 
-Ejecutar `echo`:
-
-```bash
-cargo run -p fileflow-cli -- run echo
-```
-
 Copiar archivo:
-
-```bash
-cargo run -p fileflow-cli -- run copy -- --src a.txt --dst b.txt
-```
-
-Copiar sobrescribiendo si el destino existe:
 
 ```bash
 cargo run -p fileflow-cli -- run copy -- --src a.txt --dst b.txt --overwrite
@@ -101,159 +101,68 @@ cargo run -p fileflow-cli -- run copy -- --src a.txt --dst b.txt --overwrite
 Mover archivo:
 
 ```bash
-cargo run -p fileflow-cli -- run move -- --src a.txt --dst b.txt
+cargo run -p fileflow-cli -- run move -- --src a.txt --dst b.txt --overwrite
 ```
 
 Sincronizar carpetas:
 
 ```bash
-cargo run -p fileflow-cli -- run sync -- --src ./origen --dst ./destino
-```
-
-Sincronizar de forma recursiva:
-
-```bash
 cargo run -p fileflow-cli -- run sync -- --src ./origen --dst ./destino --recursive
 ```
 
-Sincronizar eliminando archivos extra del destino:
-
-```bash
-cargo run -p fileflow-cli -- run sync -- --src ./origen --dst ./destino --delete-extra
-```
-
-Previsualizar una sincronizacion sin escribir ni borrar nada:
+Previsualizar sincronizacion sin escribir cambios:
 
 ```bash
 cargo run -p fileflow-cli -- run sync -- --src ./origen --dst ./destino --recursive --delete-extra --dry-run
 ```
 
-Por seguridad, `sync` rechaza rutas peligrosas como origen y destino iguales, destino dentro del origen, u origen dentro del destino.
-
-## Pipelines JSON
-
-Los pipelines permiten guardar automatizaciones reutilizables en archivos JSON.
-
-Ejemplo:
-
-```json
-{
-  "name": "demo",
-  "steps": [
-    {
-      "action": "echo",
-      "args": []
-    },
-    {
-      "action": "move",
-      "args": ["--src", "./a.txt", "--dst", "./b.txt", "--overwrite"]
-    }
-  ]
-}
-```
-
-Ejecutar un pipeline:
+Ejecutar pipeline:
 
 ```bash
 cargo run -p fileflow-cli -- run-config ./pipelines/demo.json
 ```
 
-Validar un pipeline sin ejecutarlo:
+Validar pipeline:
 
 ```bash
 cargo run -p fileflow-cli -- validate-config ./pipelines/demo.json
 ```
 
-## Watcher de carpetas
-
-La accion `watch` observa una carpeta y lanza un pipeline cuando detecta cambios.
-
-Ejemplo conceptual:
+Vigilar carpeta:
 
 ```bash
-cargo run -p fileflow-cli -- run watch -- --path ./entrada --config ./pipelines/sync.json
+cargo run -p fileflow-cli -- run watch -- --path ./entrada --config ./pipelines/sync.json --recursive --debounce-ms 500
 ```
 
-Opciones soportadas por la accion:
-
-- `--path`: carpeta a vigilar.
-- `--config`: pipeline JSON que se ejecutara.
-- `--recursive`: vigila subcarpetas.
-- `--once`: ejecuta una vez y termina.
-- `--debounce-ms`: evita ejecuciones repetidas demasiado seguidas.
-
-## GUI de escritorio
-
-La GUI esta en `crates/fileflow-gui` y usa:
-
-- React 19
-- TypeScript
-- Vite
-- Tauri 2
-
-Instalar dependencias frontend:
-
-```bash
-cd crates/fileflow-gui
-npm install
-```
-
-Ejecutar frontend en desarrollo:
-
-```bash
-npm run dev
-```
-
-Compilar frontend:
-
-```bash
-npm run build
-```
-
-Ejecutar con Tauri:
-
-```bash
-npm run tauri dev
-```
+## GUI
 
 La interfaz incluye:
 
 - Acciones rapidas para `echo`, `copy`, `move` y `sync`.
 - Selector de archivos y carpetas.
-- Previsualizacion de sincronizaciones antes de escribir cambios.
-- Confirmacion antes de borrar archivos extra del destino.
-- Ejecucion y validacion de pipelines JSON.
-- Panel de actividad e historial.
-- Progreso flotante.
-- Cancelacion del trabajo actual.
-- Guia integrada y pantalla "Acerca de".
+- Previsualizacion de sincronizaciones con `dry-run`.
+- Editor visual de pipelines JSON.
+- Biblioteca de pipelines recientes y guardados.
+- Pantalla para vigilar carpetas y ejecutar pipelines al detectar cambios.
+- Historial y rutas persistentes entre sesiones.
+- Panel de actividad, logs, progreso flotante y cancelacion.
+- Guia integrada y pantalla de proyecto.
 
-## Ejecutables publicados
+## Release
 
-El repositorio contiene una build de Windows en:
+Los artefactos publicados se dejan directamente en `release/`, sin subcarpetas
+por version:
 
 ```text
-release/v0.2.5/
+release/
+├── fileflow.exe
 ├── fileflow-cli.exe
-└── fileflow-gui.exe
+├── fileflow_0.5.0_x64-setup.exe
+└── fileflow_0.5.0_x64_en-US.msi
 ```
 
-## Tests y verificacion
-
-Ejecutar comprobaciones Rust:
-
-```bash
-cargo test
-```
-
-Compilar la GUI:
-
-```bash
-cd crates/fileflow-gui
-npm run build
-```
-
-Los tests de integracion viven dentro de cada crate, por ejemplo `crates/fileflow-core/tests`, `crates/fileflow-actions/tests` y `crates/fileflow-cli/tests`, para que `cargo test` los descubra y ejecute desde el workspace.
+El ejecutable principal de la GUI se llama `fileflow.exe`. La CLI mantiene el
+nombre `fileflow-cli.exe` para poder convivir en la misma carpeta.
 
 ## Errores comunes
 
@@ -273,18 +182,19 @@ fileflow run copy -- --src a.txt --dst b.txt
 
 ### Ruta de origen inexistente
 
-Comprueba que el archivo o carpeta indicado en `--src` exista y que la ruta sea valida desde el directorio en el que ejecutas el comando.
+Comprueba que el archivo o carpeta indicado en `--src` exista y que la ruta sea
+valida desde el directorio en el que ejecutas el comando.
 
 ### Destino ya existente
 
-Para `copy`, `move` o `sync`, usa `--overwrite` cuando quieras permitir sobrescritura.
+Para `copy`, `move` o `sync`, usa `--overwrite` cuando quieras permitir
+sobrescritura.
 
 ## Roadmap
 
-- Ampliar la cobertura de tests de integracion.
-- Ampliar el builder visual de pipelines.
+- Mejorar la biblioteca de pipelines con busqueda y etiquetas.
+- Ampliar cobertura de tests de integracion.
 - Mejorar empaquetado y distribucion de releases.
-- Persistencia de historial/configuracion de la GUI.
 - Plugins dinamicos o integraciones externas.
 - Optimizaciones para trabajos grandes y ejecucion paralela.
 

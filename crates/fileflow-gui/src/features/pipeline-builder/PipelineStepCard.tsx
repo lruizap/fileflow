@@ -105,7 +105,7 @@ export function PipelineStepCard({
                       onUpdate(step.id, { dryRun: e.target.checked })
                     }
                   />
-                  Solo previsualizar
+                  Previsualizar
                 </label>
               </>
             )}

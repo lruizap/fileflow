@@ -1,7 +1,7 @@
 [package]
-name = "fileflow-gui"
-version = "0.1.0"
-description = "FileFlow GUI"
+name = "fileflow"
+version = "0.5.0"
+description = "FileFlow"
 edition = "2021"
 
 [lib]

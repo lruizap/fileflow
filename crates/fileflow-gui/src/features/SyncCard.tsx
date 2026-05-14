@@ -125,7 +125,7 @@ export function SyncCard({
             checked={dryRun}
             onChange={(e) => setDryRun(e.target.checked)}
           />
-          Solo previsualizar cambios
+          Previsualizar sin cambiar archivos
         </label>
       </div>
 

@@ -14,6 +14,7 @@ pub fn run() {
             commands::actions::run_copy,
             commands::actions::run_move,
             commands::actions::run_sync,
+            commands::actions::run_watch,
             commands::actions::validate_config,
             commands::actions::run_config,
             commands::cancel::cancel_current_job,
@@ -21,5 +22,5 @@ pub fn run() {
             commands::pipeline_files::read_pipeline_json
         ])
         .run(tauri::generate_context!())
-        .expect("error while running FileFlow GUI");
+        .expect("error while running FileFlow");
 }

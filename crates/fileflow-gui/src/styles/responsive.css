@@ -6,6 +6,7 @@
   .sidebar {
     position: static;
     height: auto;
+    max-height: 100dvh;
   }
 
   .sidebar-nav {
