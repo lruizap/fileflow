@@ -91,7 +91,17 @@ pub async fn run_sync(
         push_flag(&mut args, overwrite, "--overwrite");
         push_flag(&mut args, dry_run, "--dry-run");
 
-        run_action_with_gui_progress(app, cancel_flag, "sync", "Sincronizando carpetas", args)
+        if dry_run {
+            args.push("--dry-run".to_string());
+        }
+
+        let label = if dry_run {
+            "Previsualizando sincronización"
+        } else {
+            "Sincronizando carpetas"
+        };
+
+        run_action_with_gui_progress(app, cancel_flag, "sync", label, args)
     })
     .await
     .map_err(|e| format!("Error ejecutando sync: {e}"))?
@@ -226,8 +236,11 @@ pub async fn run_config(
             emit_progress(&app_for_progress, payload);
         });
 
-        let out =
-            engine.run_action_with_progress_and_cancel(action.as_ref(), listener, cancel_flag.clone());
+        let out = engine.run_action_with_progress_and_cancel(
+            action.as_ref(),
+            listener,
+            cancel_flag.clone(),
+        );
 
         let final_progress = out
             .job
@@ -237,7 +250,12 @@ pub async fn run_config(
 
         emit_progress(
             &app,
-            build_progress_payload("Ejecutando automatización", &final_progress, started_at, true),
+            build_progress_payload(
+                "Ejecutando automatización",
+                &final_progress,
+                started_at,
+                true,
+            ),
         );
 
         cancel_flag.store(false, Ordering::SeqCst);

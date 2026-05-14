@@ -4,10 +4,8 @@ use std::path::PathBuf;
 use fileflow_core::{Action, Context, Progress, Result};
 
 use crate::fs::helpers::{
-    copy_file_optimized,
-    prepare_destination,
-    remove_destination_if_overwrite,
-    validate_source_file,
+    copy_file_optimized, ensure_distinct_paths, prepare_destination,
+    remove_destination_if_overwrite, validate_source_file,
 };
 
 #[derive(Debug, Clone)]
@@ -38,9 +36,14 @@ impl Action for MoveAction {
         let src = &self.cfg.src;
         let dst = &self.cfg.dst;
 
-        ctx.info(format!("MoveAction: {} -> {}", src.display(), dst.display()));
+        ctx.info(format!(
+            "MoveAction: {} -> {}",
+            src.display(),
+            dst.display()
+        ));
 
         validate_source_file(src)?;
+        ensure_distinct_paths(src, dst, "move")?;
         prepare_destination(dst, self.cfg.overwrite)?;
         remove_destination_if_overwrite(dst, self.cfg.overwrite)?;
 

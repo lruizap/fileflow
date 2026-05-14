@@ -85,9 +85,10 @@ impl Action for WatchAction {
                 }
                 Err(RecvTimeoutError::Timeout) => {}
                 Err(RecvTimeoutError::Disconnected) => {
-                    return Err(FileFlowError::Message(
-                        "Watcher channel disconnected".to_string(),
-                    ));
+                    return Err(FileFlowError::Message(format!(
+                        "Watcher channel closed while watching {}",
+                        self.cfg.path.display()
+                    )));
                 }
             }
         }

@@ -56,7 +56,7 @@ export function useFileFlowRunner() {
       return;
     }
 
-    const timer = window.setTimeout(() => setShowProgress(true), 10_000);
+    const timer = window.setTimeout(() => setShowProgress(true), 1_000);
     return () => window.clearTimeout(timer);
   }, [loading]);
 

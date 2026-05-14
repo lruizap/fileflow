@@ -46,6 +46,29 @@ export function SyncCard({
     if (selected) setDst(selected);
   }
 
+  function runSync() {
+    if (deleteExtra && !dryRun) {
+      const confirmed = window.confirm(
+        "Esta sincronización puede borrar archivos que existan solo en la carpeta destino. Revisa las rutas antes de continuar.",
+      );
+
+      if (!confirmed) return;
+    }
+
+    runCommand(
+      "run_sync",
+      {
+        src,
+        dst,
+        recursive,
+        deleteExtra,
+        overwrite,
+        dryRun,
+      },
+      dryRun ? "Previsualizar sincronización" : "Sincronizar carpetas",
+    );
+  }
+
   return (
     <ActionCard
       title="Sincronizar carpetas"
@@ -109,20 +132,7 @@ export function SyncCard({
       <button
         className="primary-btn"
         disabled={loading || !src || !dst}
-        onClick={() =>
-          runCommand(
-            "run_sync",
-            {
-              src,
-              dst,
-              recursive,
-              deleteExtra,
-              overwrite,
-              dryRun,
-            },
-            dryRun ? "Previsualizar sincronización" : "Sincronizar carpetas",
-          )
-        }
+        onClick={runSync}
       >
         {dryRun ? "Previsualizar sincronización" : "Sincronizar carpetas"}
       </button>

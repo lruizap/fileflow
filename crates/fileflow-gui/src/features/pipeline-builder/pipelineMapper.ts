@@ -35,6 +35,7 @@ export function stepToConfig(step: PipelineStepDraft) {
 
   if (step.action === "sync" && step.recursive) args.push("--recursive");
   if (step.action === "sync" && step.deleteExtra) args.push("--delete-extra");
+  if (step.action === "sync" && step.dryRun) args.push("--dry-run");
   if (step.overwrite) args.push("--overwrite");
 
   return {
