@@ -1,196 +1,172 @@
-# 🚀 FileFlow
+# FileFlow
 
-**FileFlow** es un automatizador local de tareas de archivos para Windows, construido en Rust.
+**FileFlow** es un automatizador local de tareas de archivos para Windows,
+construido principalmente en Rust.
 
-Permite ejecutar acciones como copiar, mover, sincronizar archivos y automatizar procesos mediante pipelines reutilizables.
+La idea del proyecto es ofrecer un **Zapier local para archivos**: copiar,
+mover, sincronizar, vigilar carpetas y ejecutar automatizaciones reutilizables
+sin depender de servicios externos.
 
-> 🧠 Filosofía: **“Zapier local para archivos”**
+## Estado actual
 
----
+- CLI en Rust para ejecutar acciones desde terminal.
+- GUI de escritorio con Tauri, React y TypeScript.
+- Motor central reutilizable con logs, progreso, estados y cancelacion.
+- Acciones modulares registradas mediante factories.
+- Pipelines JSON para encadenar acciones.
+- Editor visual de pipelines.
+- Biblioteca de pipelines recientes/guardados.
+- Persistencia local de rutas, historial y preferencias de la GUI.
+- Sincronizacion recursiva con `--dry-run`, `--overwrite` y `--delete-extra`.
+- Watcher de carpetas mediante `notify`, disponible desde CLI y GUI.
+- Builds de Windows publicados directamente en `release/`.
 
-# ✨ Características
+## Acciones disponibles
 
-- ⚡ Alto rendimiento (Rust)
-- 📦 Portable (ejecutable `.exe`, sin instalación)
-- 🧩 Arquitectura modular (actions/plugins)
-- 🖥️ CLI funcional (GUI futura)
-- 🔗 Soporte de pipelines
-- 📄 Configuración mediante JSON
-- ✅ Validación de configuraciones (`validate-config`)
-- 🧪 Tests incluidos
+| Accion | Descripcion |
+| --- | --- |
+| `echo` | Accion de prueba para validar el flujo completo. |
+| `copy` | Copia un archivo de origen a destino. |
+| `move` | Mueve un archivo de origen a destino. |
+| `sync` | Sincroniza carpetas, con soporte recursivo opcional. |
+| `watch` | Vigila una carpeta y ejecuta un pipeline cuando detecta cambios. |
+| `pipeline` | Ejecuta varias acciones en secuencia. |
 
----
+## Arquitectura
 
-# 📦 Acciones disponibles (v0.1.0)
+```text
+fileflow/
+├── crates/
+│   ├── fileflow-core        # Motor, Action trait, Context, logs y progreso
+│   ├── fileflow-actions     # Acciones, factories, registry y pipelines JSON
+│   ├── fileflow-cli         # CLI basada en clap
+│   └── fileflow-gui         # GUI Tauri + React
+├── pipelines/               # Ejemplos de automatizaciones JSON
+└── release/                 # Ejecutables e instaladores publicados
+```
 
-| Acción   | Descripción |
-|---------|------------|
-| `echo`  | Acción de prueba |
-| `copy`  | Copia archivos |
-| `move`  | Mueve archivos |
-| `sync`  | Sincroniza carpetas (nivel superior) |
-| `pipeline` | Ejecuta múltiples acciones en secuencia |
+```text
+CLI / GUI -> Registry -> ActionFactory -> Action -> Engine -> Context -> Logs / Progress / Result
+```
 
----
+## Desarrollo
 
-# 🚀 Instalación
+Requisitos:
 
-## Requisitos
+- Rust: <https://rustup.rs>
+- Node.js y npm
+- Dependencias de Tauri 2 para Windows
 
-- Rust → <https://rustup.rs>
-
-## Clonar repositorio
-
-```bash
-git clone https://github.com/lruizap/fileflow.git
-cd fileflow
-````
-
-## Compilar
+Compilar workspace Rust:
 
 ```bash
 cargo build --release
 ```
 
-El ejecutable estará en:
+Ejecutar tests:
 
 ```bash
-target/release/fileflow-cli.exe
+cargo test
 ```
 
----
+Ejecutar GUI en desarrollo:
 
-# 🧪 Uso básico
+```bash
+cd crates/fileflow-gui
+npm install
+npm run tauri dev
+```
 
-## Listar acciones disponibles
+Compilar frontend:
+
+```bash
+cd crates/fileflow-gui
+npm run build
+```
+
+## Uso CLI
+
+Listar acciones:
 
 ```bash
 cargo run -p fileflow-cli -- actions list
 ```
 
----
-
-## Ejecutar una acción
+Copiar archivo:
 
 ```bash
-cargo run -p fileflow-cli -- run echo
+cargo run -p fileflow-cli -- run copy -- --src a.txt --dst b.txt --overwrite
 ```
 
----
-
-## Copiar archivo
+Mover archivo:
 
 ```bash
-cargo run -p fileflow-cli -- run copy -- --src a.txt --dst b.txt
+cargo run -p fileflow-cli -- run move -- --src a.txt --dst b.txt --overwrite
 ```
 
----
-
-## Mover archivo
+Sincronizar carpetas:
 
 ```bash
-cargo run -p fileflow-cli -- run move -- --src a.txt --dst b.txt
+cargo run -p fileflow-cli -- run sync -- --src ./origen --dst ./destino --recursive
 ```
 
----
-
-## Sincronizar carpetas
+Previsualizar sincronizacion sin escribir cambios:
 
 ```bash
-cargo run -p fileflow-cli -- run sync -- --src ./origen --dst ./destino
+cargo run -p fileflow-cli -- run sync -- --src ./origen --dst ./destino --recursive --delete-extra --dry-run
 ```
 
-### Con eliminación de archivos extra
-
-```bash
-cargo run -p fileflow-cli -- run sync -- --src ./origen --dst ./destino --delete-extra
-```
-
----
-
-# 🔗 Pipelines
-
-## Ejecutar pipeline desde CLI
-
-```bash
-cargo run -p fileflow-cli -- run pipeline -- --step echo --step echo
-```
-
----
-
-## Pipeline con argumentos
-
-```bash
-cargo run -p fileflow-cli -- run pipeline -- --step move --step-args "move:--src=./a.txt,--dst=./b.txt"
-```
-
----
-
-# 📄 Pipelines con JSON
-
-## Ejecutar desde archivo
+Ejecutar pipeline:
 
 ```bash
 cargo run -p fileflow-cli -- run-config ./pipelines/demo.json
 ```
 
----
-
-## Validar JSON sin ejecutar
+Validar pipeline:
 
 ```bash
 cargo run -p fileflow-cli -- validate-config ./pipelines/demo.json
 ```
 
----
-
-## Ejemplo de JSON
-
-```json
-{
-  "name": "demo",
-  "steps": [
-    {
-      "action": "echo",
-      "args": []
-    },
-    {
-      "action": "move",
-      "args": ["--src", "./a.txt", "--dst", "./b.txt", "--overwrite"]
-    }
-  ]
-}
-```
-
----
-
-# 🧪 Ejemplo real
-
-### Sincronizar carpeta automáticamente
-
-```json
-{
-  "name": "sync_docs",
-  "steps": [
-    {
-      "action": "sync",
-      "args": ["--src", "./docs", "--dst", "./backup", "--delete-extra"]
-    }
-  ]
-}
-```
-
-Ejecución:
+Vigilar carpeta:
 
 ```bash
-cargo run -p fileflow-cli -- run-config ./pipelines/sync.json
+cargo run -p fileflow-cli -- run watch -- --path ./entrada --config ./pipelines/sync.json --recursive --debounce-ms 500
 ```
 
----
+## GUI
 
-# ⚠️ Errores comunes
+La interfaz incluye:
 
-## ❌ Falta de `--`
+- Acciones rapidas para `echo`, `copy`, `move` y `sync`.
+- Selector de archivos y carpetas.
+- Previsualizacion de sincronizaciones con `dry-run`.
+- Editor visual de pipelines JSON.
+- Biblioteca de pipelines recientes y guardados.
+- Pantalla para vigilar carpetas y ejecutar pipelines al detectar cambios.
+- Historial y rutas persistentes entre sesiones.
+- Panel de actividad, logs, progreso flotante y cancelacion.
+- Guia integrada y pantalla de proyecto.
+
+## Release
+
+Los artefactos publicados se dejan directamente en `release/`, sin subcarpetas
+por version:
+
+```text
+release/
+├── fileflow.exe
+├── fileflow-cli.exe
+├── fileflow_0.5.0_x64-setup.exe
+└── fileflow_0.5.0_x64_en-US.msi
+```
+
+El ejecutable principal de la GUI se llama `fileflow.exe`. La CLI mantiene el
+nombre `fileflow-cli.exe` para poder convivir en la misma carpeta.
+
+## Errores comunes
+
+### Falta de `--` al pasar argumentos a una accion
 
 Incorrecto:
 
@@ -204,65 +180,26 @@ Correcto:
 fileflow run copy -- --src a.txt --dst b.txt
 ```
 
----
+### Ruta de origen inexistente
 
-## ❌ Archivo o ruta no existe
+Comprueba que el archivo o carpeta indicado en `--src` exista y que la ruta sea
+valida desde el directorio en el que ejecutas el comando.
 
-Verifica:
+### Destino ya existente
 
-```bash
---src ./archivo.txt
-```
+Para `copy`, `move` o `sync`, usa `--overwrite` cuando quieras permitir
+sobrescritura.
 
----
+## Roadmap
 
-# 🧪 Tests
+- Mejorar la biblioteca de pipelines con busqueda y etiquetas.
+- Ampliar cobertura de tests de integracion.
+- Mejorar empaquetado y distribucion de releases.
+- Plugins dinamicos o integraciones externas.
+- Optimizaciones para trabajos grandes y ejecucion paralela.
 
-```bash
-cargo test
-```
-
----
-
-# 🧱 Arquitectura
-
-```
-fileflow/
-├── crates/
-│   ├── fileflow-core    # Motor de ejecución
-│   ├── fileflow-actions # Acciones y factories
-│   └── fileflow-cli     # CLI
-```
-
-## Flujo interno
-
-```
-CLI → Registry → Action → Engine → Job → Logs → Resultado
-```
-
----
-
-# ⚠️ Limitaciones actuales (v0.1.0)
-
-- `sync` solo funciona en nivel superior (no recursivo)
-- No hay GUI aún
-- No hay watchers automáticos
-- No hay ejecución async
-
----
-
-# 🔮 Roadmap
-
-- Sync recursivo (walkdir)
-- Watchers de carpetas
-- GUI multiplataforma
-- Plugins dinámicos
-- Paralelismo (tokio / rayon)
-- Integración con herramientas externas (7zip, robocopy)
-
----
-
-# 👨‍💻 Autor
+## Autor
 
 Lucas Ruiz
-Proyecto personal en Rust
+
+Proyecto personal en Rust para automatizacion local de archivos.

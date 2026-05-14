@@ -1,4 +1,10 @@
-export type PageId = "actions" | "pipelines" | "activity" | "guide" | "about";
+export type PageId =
+  | "actions"
+  | "pipelines"
+  | "watch"
+  | "activity"
+  | "guide"
+  | "about";
 
 export type NavItem = {
   id: PageId;
@@ -21,6 +27,12 @@ export const NAV_ITEMS: NavItem[] = [
     label: "Pipelines",
     description: "Automatizaciones JSON",
     icon: "🔗",
+  },
+  {
+    id: "watch",
+    label: "Vigilar",
+    description: "Automatiza cambios en carpetas",
+    icon: "👁",
   },
   {
     id: "activity",

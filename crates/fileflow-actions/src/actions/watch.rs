@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use std::sync::mpsc::channel;
+use std::sync::mpsc::{channel, RecvTimeoutError};
 use std::time::{Duration, Instant};
 
 use fileflow_core::{Action, Context, FileFlowError, Result};
@@ -69,7 +69,7 @@ impl Action for WatchAction {
         loop {
             ctx.ensure_not_cancelled()?;
 
-            match rx.recv() {
+            match rx.recv_timeout(Duration::from_millis(250)) {
                 Ok(Ok(event)) => {
                     ctx.info(format!("WatchAction: event {:?}", event.kind));
 
@@ -83,10 +83,11 @@ impl Action for WatchAction {
                 Ok(Err(e)) => {
                     ctx.warn(format!("WatchAction: watcher error: {e}"));
                 }
-                Err(e) => {
-                    return Err(FileFlowError::Message(format!(
-                        "Watcher channel closed: {e}"
-                    )));
+                Err(RecvTimeoutError::Timeout) => {}
+                Err(RecvTimeoutError::Disconnected) => {
+                    return Err(FileFlowError::Message(
+                        "Watcher channel disconnected".to_string(),
+                    ));
                 }
             }
         }

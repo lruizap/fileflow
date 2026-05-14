@@ -89,7 +89,7 @@ export function GuidePage() {
           <h2>4. Actividad, logs y progreso</h2>
           <p>
             FileFlow muestra el historial de acciones, logs técnicos y una barra
-            flotante de progreso cuando una operación tarda más de 30 segundos.
+            flotante de progreso cuando una operación tarda más de un segundo.
           </p>
 
           <ul className="guide-list">
@@ -101,11 +101,12 @@ export function GuidePage() {
         </article>
 
         <article className="card info-card guide-wide">
-          <h2>5. Crear pipelines desde la interfaz</h2>
+          <h2>5. Crear y guardar pipelines</h2>
           <p>
             En la pantalla de Pipelines puedes crear automatizaciones sin
             escribir JSON a mano. Solo tienes que añadir pasos, elegir archivos
-            o carpetas, guardar el JSON y ejecutarlo cuando quieras.
+            o carpetas, guardar el JSON y ejecutarlo cuando quieras desde la
+            biblioteca.
           </p>
 
           <ol className="help-steps">
@@ -126,7 +127,23 @@ export function GuidePage() {
         </article>
 
         <article className="card info-card guide-wide">
-          <h2>6. Flujo recomendado</h2>
+          <h2>6. Vigilar carpetas</h2>
+          <p>
+            La pantalla Vigilar ejecuta un pipeline cuando detecta cambios en
+            una carpeta. Es útil para procesar descargas, backups o bandejas de
+            entrada locales.
+          </p>
+
+          <ol className="help-steps">
+            <li>Elige la carpeta a vigilar.</li>
+            <li>Selecciona el pipeline JSON que quieres ejecutar.</li>
+            <li>Ajusta subcarpetas y debounce si la carpeta cambia mucho.</li>
+            <li>Inicia la vigilancia y detenla desde la misma pantalla.</li>
+          </ol>
+        </article>
+
+        <article className="card info-card guide-wide">
+          <h2>7. Flujo recomendado</h2>
           <ol className="help-steps">
             <li>Entra en Acciones.</li>
             <li>Selecciona archivo o carpeta con los botones.</li>

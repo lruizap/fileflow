@@ -22,6 +22,7 @@ export function createStep(
     recursive: action === "sync",
     deleteExtra: false,
     overwrite: false,
+    dryRun: false,
   };
 }
 
@@ -63,6 +64,7 @@ export function configStepToDraft(step: {
     recursive: step.args.includes("--recursive"),
     deleteExtra: step.args.includes("--delete-extra"),
     overwrite: step.args.includes("--overwrite"),
+    dryRun: step.args.includes("--dry-run"),
   };
 }
 

@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 
 import { invokeFileFlow } from "../api/fileflow";
+import { usePersistentState } from "./usePersistentState";
 import type {
   HistoryItem,
   ProgressPayload,
@@ -13,11 +14,14 @@ import type {
 export function useFileFlowRunner() {
   const [status, setStatus] = useState("READY");
   const [logs, setLogs] = useState<string[]>([
-    "FileFlow GUI inicializada.",
+    "FileFlow inicializado.",
     "Selecciona una acción para comenzar.",
   ]);
 
-  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [history, setHistory] = usePersistentState<HistoryItem[]>(
+    "fileflow.history.v0.5.0",
+    [],
+  );
   const [toast, setToast] = useState<ToastState>(null);
   const [loading, setLoading] = useState(false);
 
@@ -26,13 +30,23 @@ export function useFileFlowRunner() {
   const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
+    const tauriInternals = (
+      window as Window & {
+        __TAURI_INTERNALS__?: { transformCallback?: unknown };
+      }
+    ).__TAURI_INTERNALS__;
+
+    if (typeof tauriInternals?.transformCallback !== "function") {
+      return;
+    }
+
     const unlistenPromise = listen<ProgressPayload>(
       "fileflow-progress",
       (event) => setProgress(event.payload),
     );
 
     return () => {
-      unlistenPromise.then((unlisten) => unlisten());
+      unlistenPromise.then((unlisten) => unlisten()).catch(() => undefined);
     };
   }, []);
 
@@ -55,7 +69,7 @@ export function useFileFlowRunner() {
       createdAt: new Date().toLocaleTimeString(),
     };
 
-    setHistory((prev) => [item, ...prev].slice(0, 20));
+    setHistory((prev) => [item, ...prev].slice(0, 30));
   }
 
   function showToast(toast: ToastState) {

@@ -96,6 +96,17 @@ export function PipelineStepCard({
                   />
                   Borrar extras
                 </label>
+
+                <label className="check">
+                  <input
+                    type="checkbox"
+                    checked={step.dryRun}
+                    onChange={(e) =>
+                      onUpdate(step.id, { dryRun: e.target.checked })
+                    }
+                  />
+                  Previsualizar
+                </label>
               </>
             )}
 

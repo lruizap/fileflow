@@ -28,9 +28,15 @@ type Props = {
   loading: boolean;
   runCommand: RunCommand;
   setConfigPath: (value: string) => void;
+  onRememberPipeline: (path: string, name?: string) => void;
 };
 
-export function PipelineBuilder({ loading, runCommand, setConfigPath }: Props) {
+export function PipelineBuilder({
+  loading,
+  runCommand,
+  setConfigPath,
+  onRememberPipeline,
+}: Props) {
   const [name, setName] = useState("mi_automatizacion");
   const [steps, setSteps] = useState<PipelineStepDraft[]>([createStep("sync")]);
   const [savedPath, setSavedPath] = useState("");
@@ -81,6 +87,7 @@ export function PipelineBuilder({ loading, runCommand, setConfigPath }: Props) {
 
     setSavedPath(finalPath);
     setConfigPath(finalPath);
+    onRememberPipeline(finalPath, config.name);
 
     return finalPath;
   }
@@ -96,6 +103,7 @@ export function PipelineBuilder({ loading, runCommand, setConfigPath }: Props) {
     setSteps(parsed.steps.map(configStepToDraft));
     setSavedPath(selected);
     setConfigPath(selected);
+    onRememberPipeline(selected, parsed.name);
   }
 
   async function executeCurrentPipeline() {
@@ -119,7 +127,7 @@ export function PipelineBuilder({ loading, runCommand, setConfigPath }: Props) {
             guarda el archivo y ejecútalo cuando quieras.
           </p>
         </div>
-        <span className="badge">v0.4.0</span>
+        <span className="badge">v0.5.0</span>
       </div>
 
       <label>

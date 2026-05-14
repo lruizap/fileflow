@@ -22,6 +22,13 @@ export type HistoryItem = {
   createdAt: string;
 };
 
+export type SavedPipeline = {
+  id: string;
+  name: string;
+  path: string;
+  updatedAt: string;
+};
+
 export type ProgressPayload = {
   action: string;
   file: string;
@@ -43,6 +50,7 @@ export type PipelineStepDraft = {
   recursive: boolean;
   deleteExtra: boolean;
   overwrite: boolean;
+  dryRun: boolean;
 };
 
 export type PipelineConfigStep = {

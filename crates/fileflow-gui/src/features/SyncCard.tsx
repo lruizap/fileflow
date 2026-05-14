@@ -10,11 +10,13 @@ type Props = {
   recursive: boolean;
   deleteExtra: boolean;
   overwrite: boolean;
+  dryRun: boolean;
   setSrc: (value: string) => void;
   setDst: (value: string) => void;
   setRecursive: (value: boolean) => void;
   setDeleteExtra: (value: boolean) => void;
   setOverwrite: (value: boolean) => void;
+  setDryRun: (value: boolean) => void;
   runCommand: RunCommand;
 };
 
@@ -25,11 +27,13 @@ export function SyncCard({
   recursive,
   deleteExtra,
   overwrite,
+  dryRun,
   setSrc,
   setDst,
   setRecursive,
   setDeleteExtra,
   setOverwrite,
+  setDryRun,
   runCommand,
 }: Props) {
   async function selectSrc() {
@@ -91,6 +95,15 @@ export function SyncCard({
           />
           Sobrescribir archivos
         </label>
+
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={dryRun}
+            onChange={(e) => setDryRun(e.target.checked)}
+          />
+          Previsualizar sin cambiar archivos
+        </label>
       </div>
 
       <button
@@ -105,12 +118,13 @@ export function SyncCard({
               recursive,
               deleteExtra,
               overwrite,
+              dryRun,
             },
-            "Sincronizar carpetas",
+            dryRun ? "Previsualizar sincronización" : "Sincronizar carpetas",
           )
         }
       >
-        Sincronizar carpetas
+        {dryRun ? "Previsualizar sincronización" : "Sincronizar carpetas"}
       </button>
     </ActionCard>
   );

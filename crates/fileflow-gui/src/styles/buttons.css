@@ -29,6 +29,12 @@ button:disabled {
   border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
+.ghost-btn {
+  color: #cbd5e1;
+  background: transparent;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
 .small-btn {
   white-space: nowrap;
   color: #dbeafe;

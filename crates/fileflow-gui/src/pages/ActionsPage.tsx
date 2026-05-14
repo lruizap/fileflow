@@ -68,11 +68,13 @@ export function ActionsPage({
           recursive={forms.recursive}
           deleteExtra={forms.deleteExtra}
           overwrite={forms.overwrite}
+          dryRun={forms.dryRun}
           setSrc={forms.setSyncSrc}
           setDst={forms.setSyncDst}
           setRecursive={forms.setRecursive}
           setDeleteExtra={forms.setDeleteExtra}
           setOverwrite={forms.setOverwrite}
+          setDryRun={forms.setDryRun}
           runCommand={runCommand}
         />
       </section>

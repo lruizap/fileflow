@@ -1,3 +1,4 @@
+import { APP_VERSION } from "../app/constants";
 import { GitHubLink } from "../components/GitHubLink";
 
 export function AboutPage() {
@@ -27,9 +28,8 @@ export function AboutPage() {
         <article className="card info-card">
           <h2>Estado del proyecto</h2>
           <p>
-            Esta versión está centrada en mejorar la experiencia de usuario,
-            separar pantallas, mejorar la guía y preparar la base para el editor
-            visual de pipelines.
+            La versión {APP_VERSION} unifica el empaquetado, añade biblioteca de
+            pipelines, persistencia local y vigilancia visual de carpetas.
           </p>
         </article>
 

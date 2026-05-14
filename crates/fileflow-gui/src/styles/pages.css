@@ -174,3 +174,82 @@
   background: #020617;
   border: 1px solid rgba(148, 163, 184, 0.16);
 }
+
+.pipeline-library-list {
+  display: grid;
+  gap: 12px;
+}
+
+.pipeline-library-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(2, 6, 23, 0.3);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.pipeline-library-main {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 0;
+  text-align: left;
+  background: transparent;
+}
+
+.pipeline-library-main:hover:not(:disabled) {
+  transform: none;
+}
+
+.pipeline-library-main strong,
+.pipeline-library-main span,
+.pipeline-library-main small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pipeline-library-main strong {
+  color: #eff6ff;
+}
+
+.pipeline-library-main span {
+  color: #aeb8d7;
+  font-size: 13px;
+}
+
+.pipeline-library-main small {
+  color: #7dd3fc;
+}
+
+.pipeline-library-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.pipeline-library-actions .primary-btn,
+.pipeline-library-actions .secondary-btn,
+.pipeline-library-actions .ghost-btn {
+  width: auto;
+  padding: 10px 12px;
+}
+
+@media (max-width: 760px) {
+  .pipeline-library-item {
+    grid-template-columns: 1fr;
+  }
+
+  .pipeline-library-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .pipeline-library-actions .primary-btn,
+  .pipeline-library-actions .secondary-btn,
+  .pipeline-library-actions .ghost-btn {
+    width: 100%;
+  }
+}
