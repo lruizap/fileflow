@@ -120,6 +120,23 @@ fileflow run-config ./pipeline.json
 
 ---
 
+# 🖥️ GUI y procesos simultáneos
+
+Desde FileFlow 0.6.0 la aplicación de escritorio puede ejecutar varios
+procesos al mismo tiempo.
+
+- Límite por defecto: **2 procesos simultáneos**
+- Límite editable en la app: **1 a 8 procesos simultáneos**
+- Si el límite está completo, el trabajo queda en cola
+- Cada proceso tiene su propia barra de progreso
+- Cada proceso se puede cancelar de forma independiente
+- La cola usa prioridades: baja, normal, alta y crítica
+
+Los trabajos en cola arrancan automáticamente cuando queda un hueco libre. Si
+dos trabajos tienen la misma prioridad, se ejecuta antes el que entró primero.
+
+---
+
 # 🧪 Ejemplo real
 
 Mover archivo automáticamente:

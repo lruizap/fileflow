@@ -28,8 +28,9 @@ export function AboutPage() {
         <article className="card info-card">
           <h2>Estado del proyecto</h2>
           <p>
-            La versión {APP_VERSION} unifica el empaquetado, añade biblioteca de
-            pipelines, persistencia local y vigilancia visual de carpetas.
+            La versión {APP_VERSION} añade ejecución simultánea, cola avanzada,
+            prioridad por proceso, límite editable y barras de progreso
+            independientes.
           </p>
         </article>
 

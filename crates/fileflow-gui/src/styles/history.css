@@ -1,7 +1,11 @@
-.stack-card {
+.stack-card,
+.history-list {
   display: grid;
-  gap: 20px;
+}
+
+.stack-card {
   align-content: start;
+  gap: var(--space-8);
 }
 
 .history-card {
@@ -13,7 +17,7 @@
 }
 
 .compact-header {
-  margin-bottom: 14px;
+  margin-bottom: var(--space-5);
 }
 
 .compact-history-list {
@@ -22,75 +26,63 @@
   padding-right: 6px;
 }
 
-.compact-history-list::-webkit-scrollbar {
-  width: 8px;
-}
-
-.compact-history-list::-webkit-scrollbar-track {
-  background: rgba(2, 6, 23, 0.3);
-  border-radius: 999px;
-}
-
-.compact-history-list::-webkit-scrollbar-thumb {
-  background: rgba(147, 197, 253, 0.35);
-  border-radius: 999px;
-}
-
 .history-list {
-  display: grid;
-  gap: 10px;
-  margin-bottom: 18px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-7);
 }
 
 .history-item {
   display: flex;
-  justify-content: space-between;
-  gap: 14px;
   align-items: center;
-  padding: 14px;
-  border-radius: 18px;
-  background: rgba(2, 6, 23, 0.38);
-  border: 1px solid rgba(148, 163, 184, 0.14);
+  justify-content: space-between;
+  gap: var(--space-5);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-muted);
+}
+
+.history-item strong,
+.history-item span {
+  display: block;
 }
 
 .history-item strong {
-  display: block;
-  color: #eff6ff;
-  margin-bottom: 4px;
+  margin-bottom: var(--space-1);
+  color: var(--color-text-strong);
 }
 
 .history-item span {
-  display: block;
-  color: #94a3b8;
-  font-size: 13px;
+  color: var(--color-text-soft);
+  font-size: var(--font-sm);
 }
 
 .history-item em {
-  font-style: normal;
-  font-size: 12px;
-  font-weight: 900;
   padding: 6px 9px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-xs);
+  font-style: normal;
+  font-weight: 900;
 }
 
 .history-item em.ok {
-  color: #bbf7d0;
-  background: rgba(52, 211, 153, 0.12);
+  background: var(--color-green-tint);
+  color: var(--color-code-text);
 }
 
 .history-item em.bad {
-  color: #fecdd3;
-  background: rgba(251, 113, 133, 0.12);
+  background: var(--color-red-tint);
+  color: var(--color-red-soft);
 }
 
 .empty-state {
-  padding: 20px;
-  border-radius: 18px;
-  color: #9ca8c7;
-  background: rgba(2, 6, 23, 0.38);
-  border: 1px dashed rgba(148, 163, 184, 0.22);
+  padding: var(--space-8);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
 }
 
 .compact-empty {
-  padding: 14px;
+  padding: var(--space-5);
 }

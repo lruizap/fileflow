@@ -1,38 +1,161 @@
 :root {
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
-  color: #eef2ff;
-  background: #101827;
+
+  --color-bg: #101827;
+  --color-bg-strong: #020617;
+  --color-surface: rgba(15, 23, 42, 0.78);
+  --color-surface-strong: rgba(15, 23, 42, 0.96);
+  --color-surface-muted: rgba(2, 6, 23, 0.38);
+  --color-surface-subtle: rgba(255, 255, 255, 0.05);
+  --color-overlay: rgba(2, 6, 23, 0.72);
+  --color-input-bg: rgba(2, 6, 23, 0.52);
+  --color-border: rgba(148, 163, 184, 0.16);
+  --color-border-strong: rgba(148, 163, 184, 0.22);
+  --color-border-blue: rgba(147, 197, 253, 0.22);
+  --color-border-focus: rgba(96, 165, 250, 0.72);
+  --color-blue-tint: rgba(96, 165, 250, 0.14);
+  --color-blue-tint-soft: rgba(96, 165, 250, 0.1);
+  --color-green-tint: rgba(52, 211, 153, 0.12);
+  --color-red-tint: rgba(251, 113, 133, 0.12);
+  --color-green-border: rgba(52, 211, 153, 0.45);
+  --color-red-border: rgba(251, 113, 133, 0.45);
+  --color-text: #eef2ff;
+  --color-text-strong: #eff6ff;
+  --color-text-muted: #aeb8d7;
+  --color-text-soft: #94a3b8;
+  --color-text-blue: #dbeafe;
+  --color-blue: #93c5fd;
+  --color-green: #34d399;
+  --color-yellow: #fbbf24;
+  --color-red: #fb7185;
+  --color-red-soft: #fecdd3;
+  --color-code-text: #bbf7d0;
+  --color-action-text: #06101f;
+  --color-option-bg: #111827;
+  --color-info: #7dd3fc;
+  --gradient-primary: linear-gradient(135deg, var(--color-blue), var(--color-green));
+  --gradient-body:
+    radial-gradient(circle at top left, rgba(96, 165, 250, 0.28), transparent 34rem),
+    radial-gradient(circle at top right, rgba(52, 211, 153, 0.18), transparent 30rem),
+    linear-gradient(135deg, #162033 0%, #111827 45%, #0f172a 100%);
+  --gradient-card: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.09),
+    rgba(255, 255, 255, 0.045)
+  );
+  --gradient-modal:
+    radial-gradient(circle at top left, rgba(96, 165, 250, 0.22), transparent 18rem),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06)),
+    #0f172a;
+  --gradient-github: linear-gradient(135deg, #1e40af, #2563eb);
+  --gradient-scrollbar: linear-gradient(
+    180deg,
+    rgba(147, 197, 253, 0.62),
+    rgba(52, 211, 153, 0.5)
+  );
+  --gradient-scrollbar-hover: linear-gradient(
+    180deg,
+    rgba(191, 219, 254, 0.82),
+    rgba(110, 231, 183, 0.72)
+  );
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 18px;
+  --radius-xl: 22px;
+  --radius-card: 28px;
+  --radius-modal: 34px;
+  --radius-pill: 999px;
+  --shadow-card: 0 24px 70px rgba(0, 0, 0, 0.35);
+  --shadow-soft: 0 16px 40px rgba(0, 0, 0, 0.25);
+  --shadow-floating: 0 24px 80px rgba(0, 0, 0, 0.46);
+  --shadow-focus: 0 0 0 4px rgba(96, 165, 250, 0.12);
+  --shadow-logo: 0 18px 50px rgba(245, 158, 11, 0.22);
+  --shadow-action: 0 18px 42px rgba(52, 211, 153, 0.18);
+  --shadow-action-hover: 0 20px 60px rgba(52, 211, 153, 0.35);
+  --shadow-dot-active: 0 0 20px rgba(251, 191, 36, 0.7);
+  --shadow-dot-queued: 0 0 18px rgba(147, 197, 253, 0.5);
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 10px;
+  --space-4: 12px;
+  --space-5: 14px;
+  --space-6: 16px;
+  --space-7: 18px;
+  --space-8: 20px;
+  --space-9: 22px;
+  --space-10: 24px;
+  --font-xs: 12px;
+  --font-sm: 13px;
+  --font-md: 14px;
+  --font-lg: 18px;
+  --font-xl: 22px;
+  --font-hero: 68px;
+
+  color: var(--color-text);
+  background: var(--color-bg);
 }
 
 * {
   box-sizing: border-box;
+  scrollbar-color: rgba(147, 197, 253, 0.42) var(--color-surface-muted);
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-surface-subtle);
+}
+
+::-webkit-scrollbar-thumb {
+  min-height: 48px;
+  border: 3px solid var(--color-surface-muted);
+  border-radius: var(--radius-pill);
+  background: var(--gradient-scrollbar);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gradient-scrollbar-hover);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-button {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top left, rgba(96, 165, 250, 0.28), transparent 34rem),
-    radial-gradient(circle at top right, rgba(52, 211, 153, 0.18), transparent 30rem),
-    linear-gradient(135deg, #162033 0%, #111827 45%, #0f172a 100%);
+  background: var(--gradient-body);
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
 h1 {
   margin: 0;
-  font-size: clamp(36px, 6vw, 72px);
+  font-size: var(--font-hero);
   line-height: 0.95;
-  letter-spacing: -0.06em;
+  letter-spacing: 0;
 }
 
 h2 {
   margin: 0;
-  font-size: 22px;
-  letter-spacing: -0.03em;
+  font-size: var(--font-xl);
+  letter-spacing: 0;
 }

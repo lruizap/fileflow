@@ -1,12 +1,17 @@
-export type GuiRunResult = {
-  status: string;
-  logs: string[];
-};
+export type JobPriority = "low" | "normal" | "high" | "critical";
+
+export type JobStatus =
+  | "QUEUED"
+  | "RUNNING"
+  | "SUCCESS"
+  | "FAILED"
+  | "CANCELLED";
 
 export type RunCommand = (
   command: string,
   args?: Record<string, unknown>,
   label?: string,
+  priority?: JobPriority,
 ) => Promise<void>;
 
 export type ToastState = {
@@ -30,6 +35,7 @@ export type SavedPipeline = {
 };
 
 export type ProgressPayload = {
+  jobId: number;
   action: string;
   file: string;
   current: number;
@@ -38,6 +44,27 @@ export type ProgressPayload = {
   elapsedSeconds: number;
   etaSeconds: number | null;
   done: boolean;
+};
+
+export type ManagedJob = {
+  id: number;
+  command: string;
+  label: string;
+  status: JobStatus;
+  priority: JobPriority;
+  progress: ProgressPayload | null;
+  logs: string[];
+  error: string | null;
+  createdAt: number;
+  startedAt: number | null;
+  finishedAt: number | null;
+};
+
+export type QueueState = {
+  jobs: ManagedJob[];
+  concurrencyLimit: number;
+  runningCount: number;
+  queuedCount: number;
 };
 
 export type PipelineActionType = "copy" | "move" | "sync" | "echo";

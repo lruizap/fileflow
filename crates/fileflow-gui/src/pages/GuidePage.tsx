@@ -88,20 +88,48 @@ export function GuidePage() {
         <article className="card info-card">
           <h2>4. Actividad, logs y progreso</h2>
           <p>
-            FileFlow muestra el historial de acciones, logs técnicos y una barra
-            flotante de progreso cuando una operación tarda más de un segundo.
+            FileFlow muestra el historial, logs técnicos y una barra flotante
+            independiente por cada proceso activo o en cola.
           </p>
 
           <ul className="guide-list">
-            <li>Verás el proceso activo.</li>
-            <li>Verás el archivo que se está tratando.</li>
-            <li>Podrás cancelar operaciones largas.</li>
+            <li>Verás cada proceso con su propio porcentaje.</li>
+            <li>Verás el archivo o paso que se está tratando.</li>
+            <li>Podrás cancelar cada proceso por separado.</li>
             <li>Recibirás alertas de éxito o error.</li>
           </ul>
         </article>
 
         <article className="card info-card guide-wide">
-          <h2>5. Crear y guardar pipelines</h2>
+          <h2>5. Cola avanzada y procesos simultáneos</h2>
+          <p>
+            La versión 0.6.0 permite ejecutar varios procesos a la vez. El
+            límite simultáneo es editable desde el panel superior: por defecto
+            son 2 procesos y el máximo permitido es 8.
+          </p>
+
+          <ul className="guide-list">
+            <li>
+              <strong>Límite:</strong> controla cuántos trabajos pueden correr
+              al mismo tiempo.
+            </li>
+            <li>
+              <strong>Prioridad nueva:</strong> define la prioridad con la que
+              se encolan las próximas acciones.
+            </li>
+            <li>
+              <strong>Prioridad por job:</strong> los trabajos en cola pueden
+              cambiar entre baja, normal, alta y crítica antes de arrancar.
+            </li>
+            <li>
+              <strong>Cola:</strong> cuando se alcanza el límite, los nuevos
+              procesos esperan y arrancan automáticamente según prioridad.
+            </li>
+          </ul>
+        </article>
+
+        <article className="card info-card guide-wide">
+          <h2>6. Crear y guardar pipelines</h2>
           <p>
             En la pantalla de Pipelines puedes crear automatizaciones sin
             escribir JSON a mano. Solo tienes que añadir pasos, elegir archivos
@@ -127,7 +155,7 @@ export function GuidePage() {
         </article>
 
         <article className="card info-card guide-wide">
-          <h2>6. Vigilar carpetas</h2>
+          <h2>7. Vigilar carpetas</h2>
           <p>
             La pantalla Vigilar ejecuta un pipeline cuando detecta cambios en
             una carpeta. Es útil para procesar descargas, backups o bandejas de
@@ -143,7 +171,7 @@ export function GuidePage() {
         </article>
 
         <article className="card info-card guide-wide">
-          <h2>7. Flujo recomendado</h2>
+          <h2>8. Flujo recomendado</h2>
           <ol className="help-steps">
             <li>Entra en Acciones.</li>
             <li>Selecciona archivo o carpeta con los botones.</li>
@@ -151,8 +179,8 @@ export function GuidePage() {
             <li>Ejecuta la acción.</li>
             <li>Revisa la alerta, el historial y los logs.</li>
             <li>
-              Si una operación tarda mucho, usa la barra flotante para seguir el
-              progreso o cancelarla.
+              Si hay operaciones largas, usa sus barras flotantes para seguir el
+              progreso o cancelar solo el proceso necesario.
             </li>
           </ol>
         </article>

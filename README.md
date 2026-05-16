@@ -17,6 +17,8 @@ sin depender de servicios externos.
 - Editor visual de pipelines.
 - Biblioteca de pipelines recientes/guardados.
 - Persistencia local de rutas, historial y preferencias de la GUI.
+- Cola avanzada en GUI con procesos simultaneos, prioridades y limite editable.
+- Barras de progreso independientes por cada proceso activo o en cola.
 - Sincronizacion recursiva con `--dry-run`, `--overwrite` y `--delete-extra`.
 - Watcher de carpetas mediante `notify`, disponible desde CLI y GUI.
 - Builds de Windows publicados directamente en `release/`.
@@ -145,8 +147,36 @@ La interfaz incluye:
 - Biblioteca de pipelines recientes y guardados.
 - Pantalla para vigilar carpetas y ejecutar pipelines al detectar cambios.
 - Historial y rutas persistentes entre sesiones.
-- Panel de actividad, logs, progreso flotante y cancelacion.
+- Panel de cola con limite simultaneo editable.
+- Prioridad por proceso: baja, normal, alta y critica.
+- Barras de progreso independientes para cada trabajo activo o en cola.
+- Cancelacion individual por proceso.
+- Panel de actividad, logs e historial.
 - Guia integrada y pantalla de proyecto.
+
+### Procesos simultaneos en GUI
+
+Desde la version 0.6.0 la GUI puede ejecutar mas de un proceso al mismo tiempo.
+El limite por defecto es de **2 procesos simultaneos** y puede ajustarse desde
+el panel superior de la aplicacion entre **1 y 8 procesos simultaneos**.
+
+Cuando se alcanza el limite, las nuevas acciones entran en cola. La cola arranca
+automaticamente el siguiente trabajo cuando queda un hueco libre. Los trabajos
+en cola se ordenan por prioridad y, a igualdad de prioridad, por orden de
+llegada.
+
+Prioridades disponibles:
+
+| Prioridad | Uso recomendado |
+| --- | --- |
+| Baja | Tareas pesadas que pueden esperar. |
+| Normal | Valor por defecto para uso general. |
+| Alta | Tareas que deben adelantarse a la cola normal. |
+| Critica | Tareas urgentes que deben arrancar antes que el resto. |
+
+Cada proceso tiene su propia barra de progreso, logs finales y boton de
+cancelacion. Cancelar un proceso en cola lo elimina antes de arrancar; cancelar
+un proceso en ejecucion activa su cancelacion cooperativa.
 
 ## Release
 
@@ -157,8 +187,8 @@ por version:
 release/
 ├── fileflow.exe
 ├── fileflow-cli.exe
-├── fileflow_0.5.0_x64-setup.exe
-└── fileflow_0.5.0_x64_en-US.msi
+├── fileflow_0.6.0_x64-setup.exe
+└── fileflow_0.6.0_x64_en-US.msi
 ```
 
 El ejecutable principal de la GUI se llama `fileflow.exe`. La CLI mantiene el
@@ -196,7 +226,7 @@ sobrescritura.
 - Ampliar cobertura de tests de integracion.
 - Mejorar empaquetado y distribucion de releases.
 - Plugins dinamicos o integraciones externas.
-- Optimizaciones para trabajos grandes y ejecucion paralela.
+- Optimizaciones para trabajos grandes.
 
 ## Autor
 

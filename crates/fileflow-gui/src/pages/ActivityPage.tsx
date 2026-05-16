@@ -27,7 +27,7 @@ export function ActivityPage({
         </div>
       </div>
 
-      <section className="grid">
+      <section className="activity-grid">
         <HistoryPanel history={history} onClear={onClearHistory} />
         <LogsPanel logs={logs} onClear={onClearLogs} />
       </section>
