@@ -4,21 +4,18 @@
   z-index: 50;
   display: grid;
   place-items: center;
-  padding: 24px;
-  background: rgba(2, 6, 23, 0.72);
+  padding: var(--space-10);
+  background: var(--color-overlay);
   backdrop-filter: blur(16px);
 }
 
 .modal {
   width: min(720px, 100%);
-  border-radius: 34px;
+  border-radius: var(--radius-modal);
   padding: 34px;
-  background:
-    radial-gradient(circle at top left, rgba(96, 165, 250, 0.22), transparent 18rem),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06)),
-    #0f172a;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.5);
+  background: var(--gradient-modal);
+  border: 1px solid var(--color-border-strong);
+  box-shadow: var(--shadow-floating);
 }
 
 .modal-icon {
@@ -26,11 +23,11 @@
   height: 58px;
   display: grid;
   place-items: center;
-  border-radius: 20px;
-  background: linear-gradient(135deg, #93c5fd, #34d399);
-  color: #020617;
+  border-radius: var(--radius-xl);
+  background: var(--gradient-primary);
+  color: var(--color-bg-strong);
   font-size: 28px;
-  margin-bottom: 20px;
+  margin-bottom: var(--space-8);
 }
 
 .modal h2 {
@@ -39,9 +36,9 @@
 }
 
 .modal p {
-  color: #b6c3dd;
+  color: var(--color-text-muted);
   line-height: 1.7;
-  margin-bottom: 24px;
+  margin-bottom: var(--space-10);
 }
 
 .modal-close {
@@ -50,11 +47,11 @@
   right: 22px;
   width: 42px;
   height: 42px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 0;
-  color: #dbeafe;
-  background: rgba(148, 163, 184, 0.14);
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: var(--color-text-blue);
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border-strong);
   font-size: 26px;
   line-height: 1;
 }
@@ -72,39 +69,39 @@
 .help-section h3 {
   margin: 0 0 14px;
   font-size: 18px;
-  color: #eff6ff;
+  color: var(--color-text-strong);
 }
 
 .help-list {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  gap: var(--space-5);
 }
 
 .help-list div {
-  padding: 16px;
-  border-radius: 20px;
-  background: rgba(2, 6, 23, 0.38);
-  border: 1px solid rgba(148, 163, 184, 0.16);
+  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
 }
 
 .help-list strong {
   display: block;
-  margin-bottom: 8px;
-  color: #bfdbfe;
+  margin-bottom: var(--space-2);
+  color: var(--color-text-blue);
 }
 
 .help-list span {
   display: block;
-  color: #aeb8d7;
-  font-size: 14px;
+  color: var(--color-text-muted);
+  font-size: var(--font-md);
   line-height: 1.5;
 }
 
 .help-steps {
   margin: 0;
-  padding-left: 22px;
-  color: #b6c3dd;
+  padding-left: var(--space-9);
+  color: var(--color-text-muted);
   line-height: 1.8;
 }
 

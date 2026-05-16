@@ -36,6 +36,10 @@
     height: 68px;
   }
 
+  h1 {
+    font-size: 48px;
+  }
+
   .grid,
   .help-list,
   .about-grid {

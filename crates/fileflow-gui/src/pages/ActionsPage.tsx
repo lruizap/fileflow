@@ -43,10 +43,10 @@ export function ActionsPage({
           loading={loading}
           src={forms.copySrc}
           dst={forms.copyDst}
-          overwrite={forms.overwrite}
+          overwrite={forms.copyOverwrite}
           setSrc={forms.setCopySrc}
           setDst={forms.setCopyDst}
-          setOverwrite={forms.setOverwrite}
+          setOverwrite={forms.setCopyOverwrite}
           runCommand={runCommand}
         />
 
@@ -54,10 +54,10 @@ export function ActionsPage({
           loading={loading}
           src={forms.moveSrc}
           dst={forms.moveDst}
-          overwrite={forms.overwrite}
+          overwrite={forms.moveOverwrite}
           setSrc={forms.setMoveSrc}
           setDst={forms.setMoveDst}
-          setOverwrite={forms.setOverwrite}
+          setOverwrite={forms.setMoveOverwrite}
           runCommand={runCommand}
         />
 
@@ -67,13 +67,13 @@ export function ActionsPage({
           dst={forms.syncDst}
           recursive={forms.recursive}
           deleteExtra={forms.deleteExtra}
-          overwrite={forms.overwrite}
+          overwrite={forms.syncOverwrite}
           dryRun={forms.dryRun}
           setSrc={forms.setSyncSrc}
           setDst={forms.setSyncDst}
           setRecursive={forms.setRecursive}
           setDeleteExtra={forms.setDeleteExtra}
-          setOverwrite={forms.setOverwrite}
+          setOverwrite={forms.setSyncOverwrite}
           setDryRun={forms.setDryRun}
           runCommand={runCommand}
         />

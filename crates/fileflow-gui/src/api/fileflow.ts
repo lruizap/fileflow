@@ -1,12 +1,32 @@
 import { invoke } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
-import type { GuiRunResult } from "../types";
+import type { JobPriority, ManagedJob, QueueState } from "../types";
 
 export async function invokeFileFlow(
   command: string,
   args?: Record<string, unknown>,
-): Promise<GuiRunResult> {
-  return await invoke<GuiRunResult>(command, args ?? {});
+  priority?: JobPriority,
+): Promise<ManagedJob> {
+  return await invoke<ManagedJob>(command, { ...(args ?? {}), priority });
+}
+
+export async function getQueueState(): Promise<QueueState> {
+  return await invoke<QueueState>("get_queue_state");
+}
+
+export async function setConcurrencyLimit(limit: number): Promise<QueueState> {
+  return await invoke<QueueState>("set_concurrency_limit", { limit });
+}
+
+export async function cancelJob(jobId: number): Promise<ManagedJob> {
+  return await invoke<ManagedJob>("cancel_job", { jobId });
+}
+
+export async function updateJobPriority(
+  jobId: number,
+  priority: JobPriority,
+): Promise<ManagedJob> {
+  return await invoke<ManagedJob>("update_job_priority", { jobId, priority });
 }
 
 export async function savePipelineJson(path: string, content: string) {

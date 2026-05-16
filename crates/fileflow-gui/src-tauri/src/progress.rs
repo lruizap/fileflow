@@ -1,13 +1,12 @@
-use std::sync::{
-    atomic::{AtomicBool, Ordering},
-    Arc,
-};
+use std::sync::{atomic::AtomicBool, Arc};
 use std::time::Instant;
 
 use fileflow_actions as actions;
 use fileflow_core::{Engine, JobStatus, LogEntry, Progress};
 use serde::Serialize;
 use tauri::{AppHandle, Emitter};
+
+use crate::jobs::JobManager;
 
 #[derive(Debug, Serialize)]
 pub struct GuiRunResult {
@@ -18,6 +17,7 @@ pub struct GuiRunResult {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GuiProgressPayload {
+    pub job_id: u64,
     pub action: String,
     pub file: String,
     pub current: u64,
@@ -30,23 +30,26 @@ pub struct GuiProgressPayload {
 
 pub fn run_action_with_gui_progress(
     app: AppHandle,
+    manager: JobManager,
+    job_id: u64,
     cancel_flag: Arc<AtomicBool>,
     action_name: &str,
     action_label: &str,
     args: Vec<String>,
 ) -> Result<GuiRunResult, String> {
-    cancel_flag.store(false, Ordering::SeqCst);
-
     let action = actions::build_action(action_name, &args).map_err(|e| e.to_string())?;
     let engine = Engine::new();
 
     let started_at = Instant::now();
     let app_for_progress = app.clone();
+    let manager_for_progress = manager.clone();
     let label_for_progress = action_label.to_string();
 
     emit_progress(
         &app,
+        &manager,
         GuiProgressPayload {
+            job_id,
             action: action_label.to_string(),
             file: "Preparando operación...".to_string(),
             current: 0,
@@ -59,8 +62,9 @@ pub fn run_action_with_gui_progress(
     );
 
     let listener = Arc::new(move |progress: Progress| {
-        let payload = build_progress_payload(&label_for_progress, &progress, started_at, false);
-        emit_progress(&app_for_progress, payload);
+        let payload =
+            build_progress_payload(job_id, &label_for_progress, &progress, started_at, false);
+        emit_progress(&app_for_progress, &manager_for_progress, payload);
     });
 
     let out =
@@ -74,10 +78,9 @@ pub fn run_action_with_gui_progress(
 
     emit_progress(
         &app,
-        build_progress_payload(action_label, &final_progress, started_at, true),
+        &manager,
+        build_progress_payload(job_id, action_label, &final_progress, started_at, true),
     );
-
-    cancel_flag.store(false, Ordering::SeqCst);
 
     Ok(GuiRunResult {
         status: format_status(out.job.status),
@@ -85,11 +88,13 @@ pub fn run_action_with_gui_progress(
     })
 }
 
-pub fn emit_progress(app: &AppHandle, payload: GuiProgressPayload) {
+pub fn emit_progress(app: &AppHandle, manager: &JobManager, payload: GuiProgressPayload) {
+    let _ = manager.update_progress(payload.job_id, payload.clone());
     let _ = app.emit("fileflow-progress", payload);
 }
 
 pub fn build_progress_payload(
+    job_id: u64,
     action_label: &str,
     progress: &Progress,
     started_at: Instant,
@@ -114,6 +119,7 @@ pub fn build_progress_payload(
     };
 
     GuiProgressPayload {
+        job_id,
         action: action_label.to_string(),
         file: progress
             .message

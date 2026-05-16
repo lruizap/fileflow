@@ -11,6 +11,7 @@ import type { PageId } from "./app/navigation";
 import { FloatingHelpButton } from "./components/FloatingHelpButton";
 import { FloatingProgress } from "./components/FloatingProgress";
 import { HelpModal } from "./components/HelpModal";
+import { QueuePanel } from "./components/QueuePanel";
 import { Toast } from "./components/Toast";
 
 import { ActionsPage } from "./pages/ActionsPage";
@@ -31,6 +32,9 @@ function App() {
   const forms = useActionFormState();
   const runner = useFileFlowRunner();
   const savedPipelines = useSavedPipelines();
+  const watchRunning = runner.activeJobs.some((job) => job.command === "run_watch");
+  const showQueuePanel =
+    activePage === "actions" || activePage === "pipelines" || activePage === "watch";
 
   function closeIntro() {
     setShowIntro(false);
@@ -44,10 +48,11 @@ function App() {
       <Toast toast={runner.toast} onClose={() => runner.setToast(null)} />
 
       <FloatingProgress
-        progress={runner.progress}
-        visible={runner.showProgress && runner.loading}
-        cancelling={runner.cancelling}
-        onCancel={runner.cancelCurrentJob}
+        jobs={runner.activeJobs}
+        visible={runner.loading}
+        cancellingJobIds={runner.cancellingJobIds}
+        onCancel={runner.cancelJob}
+        onUpdatePriority={runner.updateJobPriority}
       />
 
       <AppShell
@@ -55,9 +60,24 @@ function App() {
         status={runner.status}
         onChangePage={setActivePage}
       >
+        {showQueuePanel && (
+          <QueuePanel
+            jobs={runner.queue.jobs}
+            runningCount={runner.queue.runningCount}
+            queuedCount={runner.queue.queuedCount}
+            concurrencyLimit={runner.queue.concurrencyLimit}
+            defaultPriority={runner.defaultPriority}
+            cancellingJobIds={runner.cancellingJobIds}
+            onSetConcurrencyLimit={runner.setConcurrencyLimit}
+            onSetDefaultPriority={runner.setDefaultPriority}
+            onUpdatePriority={runner.updateJobPriority}
+            onCancel={runner.cancelJob}
+          />
+        )}
+
         {activePage === "actions" && (
           <ActionsPage
-            loading={runner.loading}
+            loading={false}
             history={runner.history}
             forms={forms}
             runCommand={runner.runCommand}
@@ -67,7 +87,7 @@ function App() {
 
         {activePage === "pipelines" && (
           <PipelinesPage
-            loading={runner.loading}
+            loading={false}
             configPath={forms.configPath}
             pipelines={savedPipelines.pipelines}
             setConfigPath={forms.setConfigPath}
@@ -79,7 +99,7 @@ function App() {
 
         {activePage === "watch" && (
           <WatchPage
-            loading={runner.loading}
+            loading={watchRunning}
             watchPath={forms.watchPath}
             configPath={forms.configPath}
             recursive={forms.watchRecursive}
@@ -89,7 +109,10 @@ function App() {
             setRecursive={forms.setWatchRecursive}
             setDebounceMs={forms.setWatchDebounceMs}
             runCommand={runner.runCommand}
-            onCancel={runner.cancelCurrentJob}
+            onCancel={() => {
+              const watchJob = runner.activeJobs.find((job) => job.command === "run_watch");
+              if (watchJob) runner.cancelJob(watchJob.id);
+            }}
           />
         )}
 

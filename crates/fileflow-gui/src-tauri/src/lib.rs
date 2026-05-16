@@ -1,14 +1,14 @@
 pub mod commands;
+pub mod jobs;
 pub mod progress;
-pub mod state;
 
-use state::CancelState;
+use jobs::JobManager;
 
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
-        .manage(CancelState::default())
+        .manage(JobManager::default())
         .invoke_handler(tauri::generate_handler![
             commands::actions::run_echo,
             commands::actions::run_copy,
@@ -17,7 +17,10 @@ pub fn run() {
             commands::actions::run_watch,
             commands::actions::validate_config,
             commands::actions::run_config,
-            commands::cancel::cancel_current_job,
+            commands::queue::get_queue_state,
+            commands::queue::set_concurrency_limit,
+            commands::queue::update_job_priority,
+            commands::queue::cancel_job,
             commands::pipeline_files::save_pipeline_json,
             commands::pipeline_files::read_pipeline_json
         ])

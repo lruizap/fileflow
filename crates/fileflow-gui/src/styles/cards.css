@@ -1,19 +1,17 @@
 .card {
-  border-radius: 28px;
-  padding: 24px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.045)),
-    rgba(15, 23, 42, 0.78);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: var(--space-10);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-card);
+  background: var(--gradient-card), var(--color-surface);
   box-shadow:
-    0 24px 70px rgba(0, 0, 0, 0.35),
-    inset 0 1px rgba(255, 255, 255, 0.08);
+    var(--shadow-card),
+    inset 0 1px var(--color-surface-subtle);
   backdrop-filter: blur(18px);
 }
 
 .action-card {
-  min-height: 240px;
   display: flex;
+  min-height: 240px;
   flex-direction: column;
   justify-content: space-between;
 }
@@ -24,26 +22,26 @@
 
 .card-header {
   display: flex;
-  justify-content: space-between;
-  gap: 18px;
   align-items: flex-start;
-  margin-bottom: 22px;
+  justify-content: space-between;
+  gap: var(--space-7);
+  margin-bottom: var(--space-9);
 }
 
 .card p {
-  color: #9ca8c7;
-  margin: 8px 0 0;
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-muted);
   line-height: 1.5;
 }
 
 .badge {
   flex: 0 0 auto;
   padding: 7px 11px;
-  border-radius: 999px;
-  background: rgba(96, 165, 250, 0.12);
-  border: 1px solid rgba(147, 197, 253, 0.22);
-  color: #bfdbfe;
-  font-size: 12px;
+  border: 1px solid var(--color-border-blue);
+  border-radius: var(--radius-pill);
+  background: var(--color-blue-tint-soft);
+  color: var(--color-text-blue);
+  font-size: var(--font-xs);
   font-weight: 800;
   text-transform: uppercase;
 }
@@ -51,32 +49,32 @@
 .status-pill {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  min-width: 140px;
   justify-content: center;
-  padding: 12px 18px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(15, 23, 42, 0.72);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+  min-width: 140px;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-7);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-soft);
   font-weight: 800;
 }
 
 .status-pill span {
   width: 10px;
   height: 10px;
-  border-radius: 999px;
-  background: #93c5fd;
+  border-radius: var(--radius-pill);
+  background: var(--color-blue);
 }
 
 .status-pill.success span {
-  background: #34d399;
+  background: var(--color-green);
 }
 
 .status-pill.error span {
-  background: #fb7185;
+  background: var(--color-red);
 }
 
 .status-pill.running span {
-  background: #fbbf24;
+  background: var(--color-yellow);
 }
