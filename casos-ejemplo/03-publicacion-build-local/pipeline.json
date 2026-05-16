@@ -1,0 +1,31 @@
+{
+  "name": "publicacion_build_local",
+  "steps": [
+    {
+      "action": "echo",
+      "args": []
+    },
+    {
+      "action": "sync",
+      "args": [
+        "--src",
+        "./casos-ejemplo/03-publicacion-build-local/build",
+        "--dst",
+        "./casos-ejemplo/03-publicacion-build-local/publicacion/app",
+        "--recursive",
+        "--overwrite",
+        "--delete-extra"
+      ]
+    },
+    {
+      "action": "copy",
+      "args": [
+        "--src",
+        "./casos-ejemplo/03-publicacion-build-local/build/release-notes.md",
+        "--dst",
+        "./casos-ejemplo/03-publicacion-build-local/auditoria/release-notes.md",
+        "--overwrite"
+      ]
+    }
+  ]
+}
