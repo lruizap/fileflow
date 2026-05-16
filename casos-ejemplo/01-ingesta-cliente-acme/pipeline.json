@@ -1,0 +1,31 @@
+{
+  "name": "cliente_acme_ingesta",
+  "steps": [
+    {
+      "action": "echo",
+      "args": []
+    },
+    {
+      "action": "sync",
+      "args": [
+        "--src",
+        "./casos-ejemplo/01-ingesta-cliente-acme/entrada/cliente-acme",
+        "--dst",
+        "./casos-ejemplo/01-ingesta-cliente-acme/trabajo/cliente-acme",
+        "--recursive",
+        "--overwrite",
+        "--delete-extra"
+      ]
+    },
+    {
+      "action": "copy",
+      "args": [
+        "--src",
+        "./casos-ejemplo/01-ingesta-cliente-acme/entrada/cliente-acme/manifest.csv",
+        "--dst",
+        "./casos-ejemplo/01-ingesta-cliente-acme/auditoria/cliente-acme/manifest.csv",
+        "--overwrite"
+      ]
+    }
+  ]
+}
