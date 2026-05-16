@@ -33,12 +33,14 @@ pub fn run_copy(
     submit_action_job(
         app,
         &state,
-        "run_copy",
-        "Copiar archivo",
-        "copy",
-        "Copiando archivo",
-        args,
-        priority,
+        ActionJobSpec {
+            command: "run_copy",
+            label: "Copiar archivo",
+            action_name: "copy",
+            action_label: "Copiando archivo",
+            args,
+            priority,
+        },
     )
 }
 
@@ -57,16 +59,19 @@ pub fn run_move(
     submit_action_job(
         app,
         &state,
-        "run_move",
-        "Mover archivo",
-        "move",
-        "Moviendo archivo",
-        args,
-        priority,
+        ActionJobSpec {
+            command: "run_move",
+            label: "Mover archivo",
+            action_name: "move",
+            action_label: "Moviendo archivo",
+            args,
+            priority,
+        },
     )
 }
 
 #[tauri::command]
+#[allow(clippy::too_many_arguments)]
 pub fn run_sync(
     app: AppHandle,
     state: State<'_, JobManager>,
@@ -99,12 +104,14 @@ pub fn run_sync(
     submit_action_job(
         app,
         &state,
-        "run_sync",
-        label,
-        "sync",
-        progress_label,
-        args,
-        priority,
+        ActionJobSpec {
+            command: "run_sync",
+            label,
+            action_name: "sync",
+            action_label: progress_label,
+            args,
+            priority,
+        },
     )
 }
 
@@ -131,12 +138,14 @@ pub fn run_watch(
     submit_action_job(
         app,
         &state,
-        "run_watch",
-        "Vigilar carpeta",
-        "watch",
-        "Vigilando carpeta",
-        args,
-        priority,
+        ActionJobSpec {
+            command: "run_watch",
+            label: "Vigilar carpeta",
+            action_name: "watch",
+            action_label: "Vigilando carpeta",
+            args,
+            priority,
+        },
     )
 }
 
@@ -174,27 +183,31 @@ pub fn run_config(
     )
 }
 
+struct ActionJobSpec<'a> {
+    command: &'a str,
+    label: &'a str,
+    action_name: &'a str,
+    action_label: &'a str,
+    args: Vec<String>,
+    priority: Option<JobPriority>,
+}
+
 fn submit_action_job(
     app: AppHandle,
     manager: &JobManager,
-    command: &str,
-    label: &str,
-    action_name: &str,
-    action_label: &str,
-    args: Vec<String>,
-    priority: Option<JobPriority>,
+    spec: ActionJobSpec<'_>,
 ) -> Result<ManagedJob, String> {
     submit_job(
         app,
         manager,
-        command,
-        label,
+        spec.command,
+        spec.label,
         JobRequest::Action {
-            action_name: action_name.to_string(),
-            action_label: action_label.to_string(),
-            args,
+            action_name: spec.action_name.to_string(),
+            action_label: spec.action_label.to_string(),
+            args: spec.args,
         },
-        priority,
+        spec.priority,
     )
 }
 

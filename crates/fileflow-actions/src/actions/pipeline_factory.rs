@@ -8,6 +8,8 @@ use crate::registry::build_action;
 
 pub struct PipelineFactory;
 
+type PipelineArgs = (Vec<String>, HashMap<String, Vec<String>>);
+
 impl ActionFactory for PipelineFactory {
     fn name(&self) -> &'static str {
         "pipeline"
@@ -44,7 +46,7 @@ impl ActionFactory for PipelineFactory {
     }
 }
 
-fn parse_pipeline_args(args: &[String]) -> Result<(Vec<String>, HashMap<String, Vec<String>>)> {
+fn parse_pipeline_args(args: &[String]) -> Result<PipelineArgs> {
     let mut step_names = Vec::new();
     let mut step_args_map: HashMap<String, Vec<String>> = HashMap::new();
 

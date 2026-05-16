@@ -27,10 +27,11 @@ pub enum JobRequest {
     },
 }
 
-#[derive(Debug, Clone, Copy, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Debug, Clone, Copy, Default, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum JobPriority {
     Low,
+    #[default]
     Normal,
     High,
     Critical,
@@ -44,12 +45,6 @@ impl JobPriority {
             Self::High => 2,
             Self::Critical => 3,
         }
-    }
-}
-
-impl Default for JobPriority {
-    fn default() -> Self {
-        Self::Normal
     }
 }
 
